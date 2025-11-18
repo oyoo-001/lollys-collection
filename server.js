@@ -68,8 +68,12 @@ const transporter = nodemailer.createTransport({
         pass: process.env.EMAIL_PASS,
     },
     tls: {
-        rejectUnauthorized: false
-    }
+        rejectUnauthorized: true
+    },
+
+ waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0
 });
 
 // --- End Multer and Nodemailer setup ---
