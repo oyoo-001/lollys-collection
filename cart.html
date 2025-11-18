@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lolly's Collection: Cart & Checkout</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        /* --- Dark Pink & White Color Theme --- */
+        :root { 
+            --color-bg-light: #FFFFFF; /* Pure White background */
+            --color-pink-dark: #C2185B; /* A rich, dark pink */
+            --color-pink-accent: #E91E63; /* A brighter pink accent */
+            --color-text-dark: #333333; /* Dark gray for main text */
+            --color-text-subtle: #757575; /* Lighter gray for secondary text */
+            --color-border-light: #F0F0F0; /* Very light border */
+            --color-border-medium: #E0E0E0; /* Slightly darker border */
+            --color-shadow: rgba(0,0,0,0.08); /* Soft shadow */
+            --color-danger: #dc3545; /* Added danger color for modal/error */
+            --color-success: #28a745; /* Success color */
+
+            /* Typography */
+            --font-heading: 'Playfair Display', serif;
+            --font-body: 'Poppins', sans-serif;
+        }
+
+        /* --- Global Reset & Base Styles --- */
+        body { 
+            margin: 0; 
+            font-family: var(--font-body); 
+            background-color: #F4F4F9; /* Adjusted page background for contrast */
+            color: var(--color-text-dark); 
+            line-height: 1.6; 
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            font-family: var(--font-heading);
+            color: var(--color-text-dark);
+            margin-top: 0;
+            margin-bottom: 0.8em;
+        }
+        a {
+            color: var(--color-pink-accent);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        a:hover {
+            color: var(--color-pink-dark);
+        }
+        
+        /* --- GATING CSS: Blurring and Disabling Content --- */
+        .gated-content {
+            transition: filter 0.3s, opacity 0.3s;
+        }
+        .gated-content.disabled {
+            filter: blur(5px);
+            pointer-events: none;
+            opacity: 0.7;
+        }
+
+        /* --- HEADER STYLING --- */
+        .site-header {
+            background-color: lightpink;
+            box-shadow: 0 2px 4px var(--color-shadow);
+            padding: 10px 15px;
+            display: flex;
+            justify-content: space-between; 
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .logo-link {
+            font-family: var(--font-heading);
+            font-size: 1.2em;
+            font-weight: 700;
+            color: var(--color-pink-dark);
+            text-decoration: none;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            flex-shrink: 0; 
+            margin-right: 15px;
+        }
+        .header-nav {
+            display: flex;
+            gap: 5px;
+        }
+        .nav-icon {
+            display: inline-flex; 
+            align-items: center; 
+            justify-content: center; 
+            padding: 8px;
+            border-radius: 50%;
+            font-size: 1.2em;
+            color: var(--color-text-dark);
+            transition: background-color 0.2s, color 0.2s;
+            text-decoration: none;
+        }
+        .nav-icon:hover {
+            color: var(--color-pink-accent);
+            background-color: var(--color-border-light);
+        }
+        .cart-icon-with-count {
+            border-radius: 12px;
+            padding: 8px 10px;
+        }
+        .cart-icon-with-count i {
+             font-size: 1.2em;
+        }
+        .cart-icon-with-count span {
+            font-size: 0.8em; 
+            font-weight: 600;
+            color: var(--color-pink-accent);
+        }
+        /* --- END HEADER STYLING --- */
+
+
+        /* --- Main Layout Container --- */
+        .cart-container { 
+            padding: 20px 5%;
+            min-height: 80vh; 
+            max-width: 1200px;
+            margin: 0 auto; 
+            display: grid;
+            gap: 30px;
+            grid-template-areas: "items" "summary" "form";
+        }
+        
+        /* --- Cart Items Section --- */
+        .cart-items-section { 
+            grid-area: items; 
+            background-color: var(--color-bg-light);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px var(--color-shadow);
+        }
+        .cart-items-section h2 { 
+            font-size: 1.8rem;
+            margin-bottom: 20px; 
+            color: var(--color-pink-dark);
+            text-align: center;
+        }
+        
+        /* --- Individual Cart Item (REDUCED SIZE/DENSITY) --- */
+        .cart-item { 
+            display: flex; 
+            align-items: center; 
+            padding: 15px 0;
+            border-bottom: 1px solid var(--color-border-light); 
+            position: relative;
+        }
+        .cart-item:last-child { border-bottom: none; }
+        
+        .item-image { 
+            width: 70px;
+            height: 70px;
+            object-fit: cover; 
+            border-radius: 6px;
+            margin-right: 15px;
+            border: 1px solid var(--color-border-medium);
+            flex-shrink: 0;
+        }
+        .item-details { 
+            flex-grow: 1; 
+            text-align: left; 
+        }
+        .item-details strong { 
+            font-size: 1rem;
+            color: var(--color-text-dark); 
+            display: block;
+            margin-bottom: 3px;
+        }
+        .item-meta { 
+            font-size: 0.85rem;
+            color: var(--color-text-subtle); 
+        }
+        .item-total-price { 
+            font-size: 1.2rem;
+            font-weight: 600; 
+            color: var(--color-pink-accent);
+            min-width: 70px;
+            text-align: right;
+            margin-left: 10px;
+        }
+
+        /* --- Delete Button --- */
+        .delete-btn {
+            background: none;
+            border: none;
+            color: var(--color-text-subtle);
+            cursor: pointer;
+            font-size: 1.2rem;
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            padding: 5px;
+            transition: color 0.2s ease;
+            line-height: 1;
+        }
+        .delete-btn:hover {
+            color: var(--color-pink-accent);
+            transform: scale(1.1);
+        }
+        
+        /* --- Cart Summary Section --- */
+        .cart-summary-section { 
+            grid-area: summary;
+            background-color: var(--color-bg-light); 
+            padding: 25px;
+            border-radius: 12px; 
+            box-shadow: 0 5px 20px var(--color-shadow);
+            height: fit-content;
+        }
+        .cart-summary-section h2 { 
+            font-size: 1.6rem;
+            border-bottom: 1px solid var(--color-border-medium); 
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+            color: var(--color-pink-dark);
+            text-align: center;
+        }
+        .summary-line { 
+            display: flex; 
+            justify-content: space-between; 
+            padding: 8px 0;
+            font-size: 1rem;
+            color: var(--color-text-dark);
+        }
+        .summary-line span:first-child {
+            font-weight: 500;
+        }
+        .summary-total { 
+            font-size: 1.5rem;
+            font-weight: 700; 
+            color: var(--color-pink-dark);
+            border-top: 2px solid var(--color-pink-accent); 
+            padding-top: 15px;
+            margin-top: 15px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .summary-total span:last-child {
+            color: var(--color-pink-accent);
+        }
+
+        /* --- Checkout Form Section --- */
+        .checkout-form-section { 
+            grid-area: form; 
+            background-color: var(--color-bg-light);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px var(--color-shadow);
+        }
+        .checkout-form-section h2 { 
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 2.2rem; 
+            margin-bottom: 20px; 
+            color: var(--color-pink-dark);
+            text-align: center;
+        }
+        
+        /* --- Form Groups and Icons --- */
+
+        /* Container for input + icon */
+        .form-group {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        /* The icon itself */
+        .form-icon {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--color-pink-accent);
+            font-size: 1.1rem;
+            z-index: 2;
+        }
+
+        /* Input fields (Modified to accommodate icon padding) */
+        .form-group input, 
+        .form-select {
+            width: 100%;
+            padding: 14px 14px 14px 45px;
+            margin-bottom: 0;
+            border: 1px solid var(--color-border-medium);
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 1rem;
+            font-family: var(--font-body);
+            color: var(--color-text-dark);
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .form-select {
+            padding-left: 15px;
+            margin-bottom: 20px;
+        }
+
+        /* Focus state: Pink border and shadow */
+        .form-group input:focus, 
+        .form-select:focus {
+            border-color: var(--color-pink-accent);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(233, 30, 99, 0.2);
+        }
+        
+        /* Notification Prompt Styling */
+        .notification-prompt {
+            font-weight: 600;
+            font-size: 0.95rem;
+            margin-bottom: 15px;
+            color: var(--color-pink-dark);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* --- Order Button (Enhanced) --- */
+        .order-button {
+            background-color: var(--color-pink-dark);
+            color: white;
+            padding: 16px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.15rem;
+            font-weight: 600;
+            width: 100%;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            margin-top: 25px;
+            letter-spacing: 0.5px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+        .order-button:hover { 
+            background-color: var(--color-pink-accent);
+            transform: translateY(-2px);
+        }
+        .order-button:active {
+            transform: translateY(0);
+        }
+
+        .order-message { 
+            margin-top: 25px; 
+            padding: 18px; 
+            border-radius: 8px; 
+            font-weight: 600; 
+            font-size: 1.05rem;
+            text-align: center;
+        }
+        .success { background-color: #e8f5e9; color: var(--color-success); border: 1px solid #c8e6c9; }
+        .error { background-color: #ffebee; color: var(--color-danger); border: 1px solid #ef9a9a; }
+        
+        /* --- MODAL STYLES --- */
+        .modal { 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            background-color: rgba(0, 0, 0, 0.7); 
+            display: flex; 
+            opacity: 0;
+            visibility: hidden;
+            justify-content: center; 
+            align-items: center; 
+            z-index: 10000;
+            padding: 10px; 
+            transition: opacity 0.3s, visibility 0.3s;
+        }
+        .modal.is-open { 
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 40px; 
+            border-radius: 12px;
+            width: 90%;
+            max-width: 450px;
+            box-shadow: 0 5px 25px rgba(0,0,0,0.5);
+            text-align: center;
+        }
+        #access-required-modal .modal-content h3 {
+            font-size: 1.8rem;
+            color: var(--color-danger);
+            margin-top: 10px;
+        }
+        #access-required-modal .modal-content button {
+            background-color: var(--color-pink-accent);
+            padding: 10px 20px;
+            margin-top: 15px;
+            color: white;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        /* CRITICAL DEACTIVATION MODAL STYLES */
+        #deactivated-alert-modal .modal-content {
+            max-width: 450px;
+            border: 2px solid var(--color-danger);
+        }
+        #deactivated-alert-modal .modal-content h3 {
+            color: var(--color-danger);
+        }
+        
+        /* --- Media Queries for Responsive Layout --- */
+        @media (min-width: 768px) {
+            
+            /* Restore desktop specific sizes/padding */
+            .cart-items-section { padding: 30px; }
+            .cart-summary-section { padding: 35px; }
+            .checkout-form-section { padding: 30px; }
+            .cart-items-section h2 { font-size: 2.8rem; text-align: left; }
+            .checkout-form-section h2 { font-size: 2.5rem; text-align: left; }
+            .cart-summary-section h2 { font-size: 1.8rem; text-align: left; }
+            .cart-container { padding: 60px 5%; gap: 60px; }
+            
+            /* Grid layout for desktop */
+            .cart-container {
+                grid-template-columns: 2fr 1.2fr;
+                grid-template-areas: 
+                    "items summary" 
+                    "form summary";
+                padding: 60px 8%;
+                gap: 60px;
+            }
+
+            /* Restore item sizes for desktop clarity */
+            .cart-item { padding: 20px 0; }
+            .item-image { width: 90px; height: 90px; margin-right: 25px; }
+            .item-details strong { font-size: 1.2rem; }
+            .item-total-price { font-size: 1.4rem; min-width: 90px; margin-left: 15px; }
+            
+            /* Corrected icon positioning for desktop padding */
+            .form-icon {
+                 left: 30px; 
+            }
+            .form-group input {
+                padding-left: 60px;
+            }
+        }
+        
+        /* Further adjustments for larger screens */
+        @media (min-width: 1024px) {
+            .cart-container {
+                max-width: 1300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="site-header gated-content disabled">
+        <a href="/" class="logo-link">Lolly's Collection</a>
+        
+        <nav class="header-nav">
+            <a href="/" class="nav-icon" title="Home">
+                <i class="fa-solid fa-house"></i>
+            </a>
+            <a href="/products.html" class="nav-icon" title="Products">
+                <i class="fa-solid fa-tags"></i>
+            </a>
+            <a href="/order.html" class="nav-icon" title="My Orders">
+                <i class="fa-solid fa-list-alt"></i>
+            </a>
+            <a href="/cart.html" class="nav-icon cart-icon-with-count" title="Shopping Cart">
+                <i class="fa-solid fa-cart-shopping"></i> 
+                <span id="cart-count">0</span>
+            </a>
+        </nav>
+    </header>
+    <div class="cart-container gated-content disabled">
+        
+        <section class="cart-items-section">
+            <h2>Your Shopping Cart</h2>
+            <div id="cart-items">
+                <p style="text-align: center; padding: 20px 0; color: var(--color-text-subtle);">Loading cart...</p>
+            </div>
+        </section>
+
+        <section class="cart-summary-section">
+            <h2>Order Total</h2>
+            <div class="summary-line"><span>Subtotal:</span> <span id="subtotal-amount">$0.00</span></div>
+            <div class="summary-line"><span>Shipping (Fixed):</span> <span>$5.00</span></div>
+            <div class="summary-total"><span>Grand Total:</span> <span id="total-amount">$5.00</span></div>
+        </section>
+
+        <section class="checkout-form-section">
+            <h2><i class="fas fa-shipping-fast"></i> Delivery & Contact Info</h2>
+            <form id="checkout-form">
+                
+                <div class="form-group">
+                    <i class="fas fa-user-alt form-icon"></i>
+                    <input type="text" id="delivery-name" placeholder="Your Full Name" required>
+                </div>
+                
+                <div class="form-group">
+                    <i class="fas fa-map-marker-alt form-icon"></i>
+                    <input type="text" id="delivery-location" placeholder="Delivery Location (City/Estate)" required>
+                </div>
+                
+                <div class="form-group">
+                    <i class="fas fa-phone-alt form-icon"></i>
+                    <input type="text" id="delivery-phone" placeholder="Phone Number (e.g., 07XXXXXXXX)" required pattern="[0-9]{9,12}">
+                </div>
+                
+                <div class="form-group">
+                    <i class="fas fa-envelope form-icon"></i>
+                    <input type="email" id="delivery-email" placeholder="Email (for confirmation)" required>
+                </div>
+                
+                <p class="notification-prompt">
+                    <i class="fas fa-bell"></i> Receive admin notification via:
+                </p>
+                
+                <select id="notification-method" class="form-select" required>
+                    <option value="email">Admin Email (Default)</option>
+                    <option value="whatsapp">Admin WhatsApp (0742041208)</option>
+                </select>
+
+                <button type="submit" class="order-button">
+                    <i class="fas fa-paper-plane"></i> Place Final Order
+                </button>
+                
+                <div id="order-message" class="order-message" style="display: none;"></div>
+            </form>
+        </section>
+
+    </div>
+
+    <!-- ACCESS REQUIRED MODAL -->
+    <div id="access-required-modal" class="modal">
+        <div class="modal-content">
+            <i class="fa-solid fa-user-lock" style="font-size: 3rem; color: var(--color-pink-dark); margin-bottom: 10px;"></i>
+            <h3>Access Required</h3>
+            <p>You must be logged in to manage your cart and proceed to checkout.</p>
+            <button onclick="redirectToAuthPage()">
+                <i class="fa-solid fa-sign-in-alt"></i> Go to Login / Register
+            </button>
+        </div>
+    </div>
+    <!-- END ACCESS REQUIRED MODAL -->
+    
+    <!-- CRITICAL DEACTIVATION ALERT MODAL -->
+    <div id="deactivated-alert-modal" class="modal">
+        <div class="modal-content" style="max-width: 450px;">
+            <i class="fa-solid fa-triangle-exclamation" style="font-size: 3rem; color: var(--color-danger); margin-bottom: 15px;"></i>
+            <h3>Account Access Revoked</h3>
+            <p id="deactivated-message-content" style="margin-bottom: 20px;">
+                Your account status was detected as **DEACTIVATED** by the administrator. Your current session must now end.
+            </p>
+            <button id="alert-ok-button" class="order-button" style="width: auto; padding: 10px 30px;">
+                OK
+            </button>
+        </div>
+    </div>
+    <!-- END CRITICAL DEACTIVATION ALERT MODAL -->
+
+    <script>
+        /**
+         * Configuration Variables 
+         */
+        const CART_API_URL = '/api/cart';
+        const ORDER_API_URL = '/api/order';
+        const USER_PROFILE_API_URL = '/api/user/profile'; 
+        const AUTH_STATUS_API_URL = '/api/auth/status';
+        const LOGOUT_API_URL = '/api/logout';
+        const SHIPPING_COST = 5.00; 
+        const ADMIN_WHATSAPP = '254742041208'; 
+        const REFRESH_INTERVAL_MS = 1000; 
+
+        // Global variable to hold the current cart items for checkout submission
+        window.currentCart = { items: [], total: SHIPPING_COST }; 
+        
+        let isUserAuthenticated = false; 
+
+        // --- GATING LOGIC ---
+        
+        function redirectToAuthPage() {
+            window.location.href = '/auth'; // Redirect to the authentication route
+        }
+
+        /**
+         * Checks base authentication status and gates the page.
+         */
+        async function checkAuthenticationStatus() {
+            const header = document.querySelector('.site-header');
+            const container = document.querySelector('.cart-container');
+            const accessModal = document.getElementById('access-required-modal');
+
+            try {
+                const response = await fetch(AUTH_STATUS_API_URL);
+                
+                if (response.ok) {
+                    isUserAuthenticated = true;
+                    header.classList.remove('disabled');
+                    container.classList.remove('disabled');
+                    accessModal.classList.remove('is-open'); 
+                    document.body.style.overflow = 'auto'; 
+                    return true;
+                } else {
+                    // Unauthenticated initially: Gate the page.
+                    isUserAuthenticated = false;
+                    header.classList.add('disabled');
+                    container.classList.add('disabled');
+                    accessModal.classList.add('is-open');
+                    document.body.style.overflow = 'hidden';
+                    return false;
+                }
+            } catch (error) {
+                console.error('Error checking auth status:', error);
+                isUserAuthenticated = false;
+                header.classList.add('disabled');
+                container.classList.add('disabled');
+                accessModal.classList.add('is-open');
+                document.body.style.overflow = 'hidden';
+                return false;
+            }
+        }
+        
+        /**
+         * Executes server logout, displays a modal, and redirects.
+         */
+        function logoutUser(forceRedirect, message) {
+            // 1. Clear the status check interval
+            if (window.statusIntervalId) clearInterval(window.statusIntervalId);
+            
+            // 2. Display the modal and freeze the screen
+            const modal = document.getElementById('deactivated-alert-modal');
+            document.getElementById('deactivated-message-content').innerHTML = message;
+            
+            // Ensure the main page is disabled/blurred just in case
+            document.querySelector('.site-header').classList.add('disabled');
+            document.querySelector('.cart-container').classList.add('disabled');
+            
+            modal.classList.add('is-open');
+            document.body.style.overflow = 'hidden';
+
+            // 3. Set up the handler for the OK button
+            document.getElementById('alert-ok-button').onclick = () => {
+                // Attempt to destroy session on server (fire and forget)
+                fetch(LOGOUT_API_URL, { method: 'POST' }).finally(() => {
+                    // Force redirection after the user acknowledges the message
+                    if (forceRedirect) {
+                        window.location.href = '/auth';
+                    }
+                });
+            };
+        }
+
+        /**
+         * Checks profile status every second. Logs out user if deactivated.
+         */
+        async function checkProfileStatusAndLogout() {
+            if (!isUserAuthenticated) return;
+            
+            try {
+                // Use the profile API to get user details including isActive status
+                const response = await fetch(USER_PROFILE_API_URL);
+                
+                if (response.status === 401 || response.status === 404) {
+                    // Session expired or user profile vanished
+                    logoutUser(true, "Your session has expired. Please log in again.");
+                    return;
+                }
+                
+                const userData = await response.json();
+                
+                // CHECK DEACTIVATION FLAG
+                const isActive = userData.isActive === true || userData.isActive === 1;
+                
+                if (!isActive) {
+                    logoutUser(true, "Your account has been deactivated by the administrator.");
+                }
+
+            } catch (error) {
+                // Ignore silent errors during background refresh
+                console.error("Background status check error:", error.message);
+            }
+        }
+
+        // --- 1. Cart Utility Functions ---
+        function updateCartCountInNav(cart) {
+            const cartCount = cart ? cart.length : 0;
+            const cartNavEl = document.getElementById('cart-count');
+            if(cartNavEl) cartNavEl.textContent = cartCount;
+        }
+
+        // --- 2. DELETE Functionality (The real DELETE API call) ---
+        async function deleteItem(productId) {
+            if (!isUserAuthenticated) {
+                 document.getElementById('access-required-modal').classList.add('is-open');
+                 return;
+            }
+
+            if (!confirm("Are you sure you want to remove this item?")) {
+                return;
+            }
+            try {
+                const response = await fetch(`${CART_API_URL}/${productId}`, { method: 'DELETE' });
+                
+                if (response.ok) {
+                    renderCart(); 
+                } else if (response.status === 401) {
+                    checkAuthenticationStatus(); 
+                } else {
+                    const result = await response.json();
+                    alert(result.message || "Failed to remove item.");
+                }
+            } catch (error) {
+                console.error('API Error:', error);
+                alert("An error occurred connecting to the server. Check console for details.");
+            }
+        }
+
+        // --- 3. Render Cart and Summary (The real GET API call) ---
+        async function renderCart() {
+            if (!isUserAuthenticated) {
+                document.getElementById('cart-items').innerHTML = '<p style="text-align: center; padding: 20px 0; color: var(--color-text-subtle);">Please log in to view your cart items.</p>';
+                return;
+            }
+            
+            const itemsContainer = document.getElementById('cart-items');
+            const subtotalEl = document.getElementById('subtotal-amount');
+            const totalEl = document.getElementById('total-amount');
+            
+            itemsContainer.innerHTML = '<p style="text-align: center; padding: 20px 0; color: var(--color-text-subtle);">Loading cart...</p>';
+            let subtotal = 0;
+            let cart = [];
+
+            try {
+                const response = await fetch(CART_API_URL);
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        checkAuthenticationStatus(); 
+                        return;
+                    }
+                    throw new Error(`Failed to fetch cart: ${response.status} ${response.statusText}`);
+                }
+                
+                cart = await response.json(); 
+
+            } catch (error) {
+                console.error('Error fetching cart:', error);
+                itemsContainer.innerHTML = '<p style="text-align: center; color: red;">Failed to load cart. Please ensure your backend is running correctly.</p>';
+                subtotalEl.textContent = '$0.00';
+                totalEl.textContent = '$' + SHIPPING_COST.toFixed(2);
+                document.getElementById('checkout-form').style.display = 'none';
+                return;
+            }
+
+            // --- Rendering Logic ---
+            itemsContainer.innerHTML = '';
+            updateCartCountInNav(cart);
+
+            if (cart.length === 0) {
+                itemsContainer.innerHTML = '<p style="text-align: center; padding: 20px 0; color: var(--color-text-subtle);">Your cart is empty. <a href="/products">Start shopping now!</a></p>';
+                subtotalEl.textContent = '$0.00';
+                totalEl.textContent = '$' + SHIPPING_COST.toFixed(2);
+                document.getElementById('checkout-form').style.display = 'none';
+                window.currentCart = { items: [], total: SHIPPING_COST };
+                return;
+            }
+            
+            document.getElementById('checkout-form').style.display = 'block';
+
+            cart.forEach(item => {
+                const price = parseFloat(item.price) || 0;
+                const quantity = parseInt(item.quantity) || 1;
+                const itemTotal = price * quantity;
+                subtotal += itemTotal;
+                
+                const productImageUrl = item.image_url || '/images/products/placeholder.jpg'; 
+
+                const itemDiv = document.createElement('div');
+                itemDiv.classList.add('cart-item');
+                itemDiv.dataset.productId = item.id; 
+                
+                itemDiv.innerHTML = `
+                    <button class="delete-btn" onclick="deleteItem(${item.id})">&times;</button>
+                    
+                    <img src="${productImageUrl}" 
+                         alt="${item.name}" 
+                         class="item-image"
+                         onerror="this.onerror=null;this.src='/images/products/placeholder.jpg';" >
+                    
+                    <div class="item-details">
+                        <strong>${item.name || 'Unknown Product'}</strong>
+                        <p class="item-meta">
+                            Unit Price: $${price.toFixed(2)} | Qty: ${quantity}
+                        </p>
+                    </div>
+                    <span class="item-total-price">$${itemTotal.toFixed(2)}</span>
+                `;
+                itemsContainer.appendChild(itemDiv);
+            });
+
+            // --- Update Summary Totals ---
+            const total = subtotal + SHIPPING_COST;
+            subtotalEl.textContent = '$' + subtotal.toFixed(2);
+            totalEl.textContent = '$' + total.toFixed(2);
+            
+            // Store cart data globally for submission
+            window.currentCart = { items: cart, total: total }; 
+        }
+        
+        // --- New Function: Fetch User Details and Pre-fill Form ---
+        async function initFormFields() {
+            if (!isUserAuthenticated) return;
+            
+            const nameEl = document.getElementById('delivery-name');
+            const emailEl = document.getElementById('delivery-email');
+            const phoneEl = document.getElementById('delivery-phone');
+            const locationEl = document.getElementById('delivery-location');
+
+            // Set initial placeholders/state for manual fields
+            phoneEl.placeholder = "Phone Number (e.g., 07XXXXXXXX)"; 
+            locationEl.placeholder = "Delivery Location (City/Estate)";
+
+            try {
+                const response = await fetch(USER_PROFILE_API_URL);
+                
+                if (response.ok) {
+                    const userData = await response.json(); 
+
+                    // Pre-fill Name and Email
+                    nameEl.value = userData.name || ''; 
+                    emailEl.value = userData.email || '';
+                    
+                    // Pre-fill Phone Number (FIXED)
+                    phoneEl.value = userData.phoneNumber || '';
+                    
+                    nameEl.placeholder = 'Your Full Name (Pre-filled)';
+                    emailEl.placeholder = 'Email (Pre-filled)';
+                    phoneEl.placeholder = 'Phone Number (Pre-filled)';
+                    
+                    console.log('Form fields pre-filled with user data.');
+
+                } else if (response.status === 401) {
+                    checkAuthenticationStatus();
+                } else {
+                    console.warn('User profile not available. Leaving fields blank for manual entry.');
+                    nameEl.placeholder = "Your Full Name (REQUIRED)";
+                    emailEl.placeholder = "Email (for confirmation) (REQUIRED)";
+                }
+
+            } catch (error) {
+                console.error('Error fetching user profile:', error);
+                nameEl.placeholder = "Your Full Name (REQUIRED)";
+                emailEl.placeholder = "Email (for confirmation) (REQUIRED)";
+            }
+        }
+        
+        // --- 4. Order Submission Handler (The real POST API call) ---
+        document.getElementById('checkout-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            if (!isUserAuthenticated) {
+                 document.getElementById('access-required-modal').classList.add('is-open');
+                 return;
+            }
+
+            const messageEl = document.getElementById('order-message');
+            const cartData = window.currentCart;
+
+            if (!cartData || cartData.items.length === 0) {
+                messageEl.textContent = 'Your cart is empty. Cannot place order.';
+                messageEl.className = 'order-message error';
+                messageEl.style.display = 'block';
+                return;
+            }
+
+            // Construct the final order data to send to the server
+            const orderData = {
+                name: document.getElementById('delivery-name').value, 
+                phone: document.getElementById('delivery-phone').value,
+                email: document.getElementById('delivery-email').value,
+                location: document.getElementById('delivery-location').value,
+                
+                items: cartData.items, 
+                subtotal: (cartData.total - SHIPPING_COST).toFixed(2), // Calculate subtotal
+                shipping: SHIPPING_COST.toFixed(2),
+                total: cartData.total.toFixed(2), 
+                notificationMethod: document.getElementById('notification-method').value
+            };
+            
+            messageEl.textContent = 'Processing your order...';
+            messageEl.className = 'order-message';
+            messageEl.style.display = 'block';
+
+            try {
+                const response = await fetch(ORDER_API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(orderData)
+                });
+                
+                const result = await response.json();
+
+                if (response.ok) {
+                    renderCart(); 
+                    
+                    messageEl.textContent = `Order #${result.orderId || 'CONFIRMED'} placed! ${result.message || 'Details sent to your email.'}`;
+                    messageEl.className = 'order-message success';
+
+                    if (orderData.notificationMethod === 'whatsapp') {
+                        const whatsappMessage = encodeURIComponent(
+                            `NEW ORDER #${result.orderId || 'CONFIRMED'} received from ${orderData.name} at ${orderData.location}. Total: $${orderData.total}.\n\nPlease check your admin system for full details.`
+                        );
+                        window.open(`https://wa.me/${ADMIN_WHATSAPP}?text=${whatsappMessage}`, '_blank');
+                    }
+                    
+                    this.reset();
+
+                } else if (response.status === 401) {
+                    checkAuthenticationStatus();
+                } else {
+                    messageEl.textContent = `Order failed: ${result.message || 'Server error. Please try again.'}`;
+                    messageEl.className = 'order-message error';
+                }
+
+            } catch (error) {
+                console.error('Network Error:', error);
+                messageEl.textContent = 'An error occurred connecting to the server.';
+                messageEl.className = 'order-message error';
+            }
+        });
+// --- 5. Initialization ---
+        document.addEventListener('DOMContentLoaded', async () => {
+            // 1. Check auth status and gate the page (most important step)
+            const loggedIn = await checkAuthenticationStatus(); 
+            
+            // 2. Only run data fetching/form initialization if authenticated
+            if (loggedIn) {
+                renderCart();
+                initFormFields();
+                // 3. Start 1-second background security check loop
+                window.statusIntervalId = setInterval(checkProfileStatusAndLogout, REFRESH_INTERVAL_MS);
+            } else {
+                if (window.statusIntervalId) clearInterval(window.statusIntervalId);
+            }
+            
+            // Failsafe: Clear interval if user navigates away
+            window.onbeforeunload = function() {
+                if (window.statusIntervalId) clearInterval(window.statusIntervalId);
+            };
+
+            window.redirectToAuthPage = redirectToAuthPage;
+        });
+    </script>
+</body>
+</html>

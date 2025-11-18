@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lolly's Collection: About Us</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- Dark Pink & White Color Theme --- */
+        :root { 
+            --color-bg-light: #FFFFFF; /* Pure White background for containers */
+            --color-bg-page: #F4F4F9; /* Light gray page background for contrast */
+            --color-pink-dark: #C2185B; /* Primary action/branding pink */
+            --color-pink-accent: #E91E63; /* Secondary accent pink */
+            --color-text-dark: #333333; /* Dark gray for main text */
+            --color-text-subtle: #757575; /* Lighter gray for secondary text */
+            --color-shadow: rgba(0,0,0,0.08);
+
+            /* Typography */
+            --font-heading: 'Playfair Display', serif;
+            --font-body: 'Poppins', sans-serif;
+        }
+
+        /* --- Global Styles --- */
+        body { 
+            margin: 0; 
+            font-family: var(--font-body); 
+            background-color: var(--color-bg-page); 
+            color: var(--color-text-dark); 
+            line-height: 1.6; 
+        }
+
+        /* --- Header & Navigation (Consistent with Home Page) --- */
+        .header { 
+            background-color: lightpink; 
+            padding: 1.2rem 5%; 
+            box-shadow: 0 2px 10px var(--color-shadow); 
+            display: flex; 
+            flex-direction: column; 
+            align-items: flex-start; 
+            position: sticky; 
+            top: 0; 
+            z-index: 50; 
+        }
+        .logo { 
+            font-family: var(--font-heading); 
+            font-size: 1.8rem; 
+            font-weight: 700; 
+            color: var(--color-pink-dark); 
+            text-decoration: none; 
+            margin-bottom: 12px; 
+        }
+        .main-nav { display: flex; flex-wrap: wrap; gap: 1.5rem; }
+        .main-nav a { 
+            text-decoration: none; 
+            color: var(--color-text-dark); 
+            font-weight: 500; 
+            transition: color 0.2s; 
+            font-size: 0.95rem; 
+        }
+        /* Highlight the active link: About Us */
+        .main-nav a[href="/about"] { 
+            font-weight: 600; 
+            color: var(--color-pink-accent); 
+        }
+        .main-nav a:hover { color: var(--color-pink-accent); }
+
+        /* --- Page Content Styles --- */
+        .page-content { 
+            padding: 4rem 5%; 
+            text-align: center; 
+            min-height: 80vh; 
+        }
+
+        .page-content h2 { 
+            font-family: var(--font-heading);
+            font-size: 2.5rem; 
+            color: var(--color-pink-dark);
+            margin-bottom: 2rem;
+        }
+
+        .about-text { 
+            text-align: left; 
+            line-height: 1.8; 
+            color: var(--color-text-dark); 
+            max-width: 900px; 
+            margin: 0 auto;
+            background-color: var(--color-bg-light); /* White container for contrast */
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px var(--color-shadow);
+        }
+
+        .about-text strong {
+            color: var(--color-pink-accent);
+        }
+        
+        /* --- Media Query for Larger Screens (Desktop/Tablet) --- */
+        @media (min-width: 768px) {
+            .header {
+                flex-direction: row; 
+                justify-content: space-between;
+                align-items: center;
+                padding: 1.2rem 8%;
+            }
+            .logo { margin-bottom: 0; font-size: 2.2rem; }
+            .main-nav { flex-wrap: nowrap; gap: 2rem; }
+            .main-nav a { font-size: 1.05rem; }
+            
+            .page-content { padding: 6rem 8%; }
+            .page-content h2 { font-size: 3.5rem; }
+            .about-text { padding: 50px; }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <a href="/" class="logo">Lolly's Collection</a>
+        <nav class="main-nav">
+            <a href="/">Home</a>
+           
+        </nav>
+    </header>
+
+    <section id="about-section" class="page-content">
+        <h2>Our Story: Passion for Modern Elegance</h2>
+        <div class="about-text">
+            <p><strong>Lolly's Collection</strong> was founded on the belief that fashion should be both expressive and accessible. We noticed a gap in the market for high-quality, modern pieces that didn't compromise on style or ethical sourcing.</p>
+            <p>Our curation process focuses on sophisticated silhouettes, luxurious textures, and the soft, timeless appeal of the modern aesthetic. Every shoe, bag, and garment is chosen to ensure it becomes a core, confidence-boosting piece in your wardrobe. We are more than just a shop; we are curators of style, aiming to inspire a sense of renewed self-expression.</p>
+            <p>We are committed to quality, sustainability, and empowering our customers to feel uniquely beautiful every day. Thank you for joining the Lolly's Collection journey.</p>
+        </div>
+    </section>
+</body>
+</html>

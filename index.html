@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lolly's Collection: Home</title>
+    <!-- Updated Font Awesome to a slightly newer version for better icon support -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- Dark Pink & White Color Theme --- */
+        :root { 
+            --color-bg-light: #FFFFFF;
+            --color-bg-page: #F4F4F9;
+            --color-pink-dark: #C2185B; /* Primary action/branding pink */
+            --color-pink-accent: #E91E63; /* Secondary action/price pink */
+            --color-text-dark: #333333;
+            --color-text-subtle: #757575;
+            --color-shadow: rgba(0,0,0,0.08);
+            --color-danger: #dc3545; /* Added danger color for modal/error */
+            --color-success: #28a745; /* Success color */
+
+            --font-heading: 'Playfair Display', serif;
+            --font-body: 'Poppins', sans-serif;
+        }
+
+        /* --- Global Layout Styles: Simplified Layout --- */
+        body { 
+            margin: 0; 
+            font-family: var(--font-body); 
+            background-color: var(--color-bg-page); 
+            color: var(--color-text-dark); 
+            line-height: 1.6; 
+            min-height: 100vh;
+        }
+        
+        /* --- Header Styles (COMPACT & ICON-BASED) --- */
+        .header { 
+            background-color: lightpink; 
+            padding: 0.8rem 5%;
+            box-shadow: 0 2px 10px var(--color-shadow); 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            z-index: 50; 
+            position: sticky;
+            top: 0;
+        }
+
+        /* Group navigation and auth controls */
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem; /* Spacing between icon nav and auth button */
+        }
+        
+        /* Icon Navigation Styles */
+        .main-nav { 
+            display: flex; 
+            flex-direction: row; /* Horizontal layout */
+            gap: 1.5rem; /* Increased from 1rem */
+            align-items: center;
+        }
+        
+        .main-nav a { 
+            color: var(--color-pink-dark);
+            font-size: 1.4rem; /* Increased from 1.3rem */
+            padding: 5px;
+            border-radius: 6px;
+            transition: all 0.3s ease-out; 
+            position: relative;
+            text-decoration: none;
+        }
+        
+        /* Text for links, hidden on desktop */
+        .main-nav .nav-text {
+            display: none;
+        }
+        
+        .main-nav a[href="/"] { 
+            color: var(--color-pink-accent); /* Active/Home color */
+        }
+        
+        .main-nav a:hover { 
+            color: var(--color-pink-accent);
+            background-color: rgba(233, 30, 99, 0.1);
+        }
+
+        /* Cart Badge Styling */
+        #cart-count {
+            font-size: 0.7rem; 
+            font-weight: 700;
+            background-color: var(--color-pink-accent);
+            color: white;
+            border-radius: 50%;
+            padding: 2px 5px;
+            line-height: 1;
+            position: absolute;
+            top: 0px;
+            right: -10px;
+            min-width: 15px;
+            text-align: center;
+            display: none; 
+        }
+        
+        /* Disabled Link Style (Applies to icons) */
+        .disabled-nav-link {
+            pointer-events: none; 
+            opacity: 0.4; 
+            cursor: not-allowed;
+            background-color: transparent !important;
+            transform: none !important;
+        }
+        
+        /* --- Hamburger & Sidebar Styles --- */
+        .hamburger-icon, .sidebar-close-icon {
+            display: none; /* Hidden by default */
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--color-pink-dark);
+            cursor: pointer;
+            padding: 5px;
+            z-index: 1002; /* Above sidebar */
+        }
+        
+        .sidebar-close-icon {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 1.8rem; /* Make close X bigger */
+        }
+        
+        /* 🚨 FIX: Hide the sidebar nav element by default on desktop */
+        .main-nav-sidebar {
+            display: none;
+        }
+        
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease-in-out;
+        }
+        .overlay.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+
+        /* --- Main Content Styles --- */
+        #main-content {
+            padding: 0 5%;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Logo & Auth Button Styles */
+        .logo { 
+            font-family: var(--font-heading); 
+            font-size: 2.2rem; 
+            font-weight: 700; 
+            color: var(--color-pink-dark); 
+            text-decoration: none; 
+        }
+        .auth-button {
+            background-color: var(--color-pink-accent); 
+            color: white; 
+            padding: 8px 15px; /* Reduced padding */
+            border-radius: 8px; 
+            font-weight: 600; 
+            font-size: 0.9rem; /* Slightly larger for readability */
+            transition: background-color 0.3s, transform 0.2s; 
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(194, 24, 91, 0.2);
+            white-space: nowrap; 
+        }
+        .auth-button:hover {
+            background-color: var(--color-pink-dark);
+        }
+
+        /* --- Hero Section --- */
+        .hero { 
+            padding: 4rem 0; 
+            background: none; 
+            min-height: 85vh; 
+            display: flex;
+            flex-direction: row; 
+            justify-content: center;
+            align-items: center;
+            text-align: left; 
+            gap: 50px; 
+        }
+        .hero-content { flex: 1; max-width: 50%; }
+        .hero h1 { font-family: var(--font-heading); font-size: 4rem; margin-bottom: 0.5rem; font-weight: 700; color: var(--color-pink-dark);}
+        .hero h1 span { font-family: var(--font-body); font-style: normal; font-size: 0.5em; display: block; font-weight: 300; color: var(--color-text-subtle); margin-top: 10px; }
+        .hero p { font-size: 1.2rem; color: var(--color-text-subtle); margin: 1rem 0 2rem; font-weight: 400; }
+        .cta-button { 
+            background-color: var(--color-pink-dark); 
+            color: white; 
+            padding: 15px 40px; 
+            text-decoration: none; 
+            border-radius: 8px; 
+            font-weight: 600; 
+            font-size: 1.1rem;
+            transition: background-color 0.3s, transform 0.2s, box-shadow 0.3s; 
+            border: none;
+            box-shadow: 0 4px 10px rgba(194, 24, 91, 0.2);
+            display: inline-block;
+        }
+        .cta-button:hover { background-color: var(--color-pink-accent); transform: translateY(-3px); box-shadow: 0 6px 15px rgba(194, 24, 91, 0.3); }
+
+        .hero-image-container { flex: 1; display: flex; justify-content: center; align-items: center; max-width: 50%; }
+        /* Using a common placeholder image URL since the original might not load */
+        .hero-image-container img { max-width: 100%; height: auto; border-radius: 12px; box-shadow: 0 8px 25px rgba(0,0,0,0.15); object-fit: cover; max-height: 500px; }
+        
+        /* --- Notification Banner Styles --- */
+        .notification-banner {
+            display: none; 
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            background-color: var(--color-pink-accent); 
+            color: white;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-weight: 600;
+            box-shadow: 0 6px 20px rgba(194, 24, 91, 0.4);
+            animation: subtle-flash 0.5s ease-in-out infinite alternate; 
+            opacity: 1;
+            transition: opacity 0.3s ease-in-out, transform 0.3s;
+        }
+
+        @keyframes subtle-flash {
+            from { opacity: 1; box-shadow: 0 6px 20px rgba(194, 24, 91, 0.4); }
+            to { opacity: 0.9; box-shadow: 0 4px 10px rgba(194, 24, 91, 0.2); }
+        }
+
+        /* --- Footer Styles (Simplified) --- */
+        .site-footer {
+            background-color: var(--color-pink-dark); 
+            color: white;
+            padding: 1.5rem 2rem;
+            text-align: center;
+            font-size: 0.9rem;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            margin-top: auto; /* Push footer to the bottom */
+        }
+        
+        /* --- MODAL STYLES --- */
+        .modal { 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            background-color: rgba(0, 0, 0, 0.7); 
+            display: flex; 
+            opacity: 0;
+            visibility: hidden;
+            justify-content: center; 
+            align-items: center; 
+            z-index: 10000;
+            padding: 10px; 
+            transition: opacity 0.3s, visibility 0.3s;
+        }
+        .modal.is-open { 
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 40px; 
+            border-radius: 12px;
+            width: 90%;
+            max-width: 450px;
+            box-shadow: 0 5px 25px rgba(0,0,0,0.5);
+            text-align: center;
+        }
+        #deactivated-alert-modal .modal-content {
+            max-width: 450px;
+            border: 2px solid var(--color-danger);
+        }
+        #deactivated-alert-modal .modal-content h3 {
+            color: var(--color-danger);
+            font-size: 1.8rem;
+            margin-top: 10px;
+        }
+        .alert-button {
+            background-color: var(--color-pink-accent);
+            padding: 10px 20px;
+            margin-top: 15px;
+            color: white;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .alert-button:hover {
+            background-color: var(--color-pink-dark);
+        }
+
+
+        /* --- Media Query for Smaller Screens (Mobile/Tablet) --- */
+        @media (max-width: 900px) {
+            body {
+                display: flex;
+                flex-direction: column;
+            }
+
+            .header { padding: 0.8rem 5%; }
+            .header-controls {
+                gap: 10px; /* Tighter spacing for mobile header */
+            }
+            
+            /* Show hamburger, hide desktop nav links */
+            .hamburger-icon {
+                display: block;
+            }
+            .main-nav {
+                display: none; /* Hide nav links from header */
+            }
+            
+            /* Style the nav element as a sidebar */
+            nav.main-nav-sidebar {
+                display: block; /* Re-enable display for sidebar */
+                position: fixed;
+                top: 0;
+                left: 0;
+                height: 100vh;
+                width: 280px;
+                background-color: var(--color-bg-light);
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 60px 30px 30px;
+                gap: 1.5rem;
+                box-shadow: 0 0 20px rgba(0,0,0,0.2);
+                /* Hide off-screen by default */
+                transform: translateX(-100%);
+                transition: transform 0.3s ease-in-out;
+                z-index: 1001; /* Above overlay */
+            }
+            
+            /* Class to show the sidebar */
+            nav.main-nav-sidebar.mobile-menu-open {
+                transform: translateX(0);
+            }
+            
+            /* Show the close button inside the sidebar */
+            .sidebar-close-icon {
+                display: block;
+            }
+
+            /* Style nav links for vertical sidebar */
+            .main-nav-sidebar a {
+                font-size: 1.2rem;
+                color: var(--color-text-dark);
+                width: 100%; /* Make links full-width */
+                display: block; /* Ensure they stack vertically */
+                padding: 10px 15px; /* Added horizontal padding */
+                margin: 0 -15px; /* Offset padding to keep alignment */
+                border-radius: 8px; /* Added border-radius */
+                transition: all 0.2s ease-in-out; /* Smooth transition */
+            }
+            
+            /* --- NEW HOVER EFFECT --- */
+            .main-nav-sidebar a:hover {
+                background-color: var(--color-bg-page); /* Light grey background on hover */
+                color: var(--color-pink-accent); /* Pink text on hover */
+                transform: translateX(5px); /* Slight pop-out effect */
+            }
+            
+            /* Show text labels in sidebar */
+            .main-nav-sidebar .nav-text {
+                display: inline-block;
+                margin-left: 10px;
+            }
+
+            /* Style auth button for mobile header */
+            #auth-controls {
+                margin-top: 0; 
+                width: auto;
+            }
+            .auth-button {
+                width: auto;
+                font-size: 0.9rem;
+                padding: 8px 12px;
+            }
+
+            /* Adjust logo size */
+            .logo { 
+                font-size: 1.8rem;
+            }
+
+            .hero {
+                flex-direction: column; 
+                text-align: center; 
+                padding: 4rem 0; 
+                gap: 30px; 
+                min-height: auto;
+            }
+            .hero-content, .hero-image-container { 
+                max-width: 100%; 
+                text-align: center;
+            }
+            .hero h1 { font-size: 2.5rem; }
+            .hero p { margin: 1rem auto 2rem; }
+        }
+    </style>
+</head>
+<body>
+    
+    <header class="header">
+        <a href="/" class="logo">Lolly's Collection</a>
+        
+        <!-- This group holds all controls -->
+        <div class="header-controls">
+            
+            <!-- This nav is for desktop icons -->
+            <nav class="main-nav" id="main-nav-desktop">
+                <a href="/" aria-label="Home"><i class="fa-solid fa-house"></i></a>
+                <a href="/products" aria-label="Products"><i class="fa-solid fa-tags"></i></a>
+                <a href="/cart" aria-label="Cart">
+                    <i class="fa-solid fa-shopping-cart"></i>
+                    <span id="cart-count" style="display: none;">0</span>
+                </a>
+                <a href="/about" aria-label="About Us"><i class="fa-solid fa-info-circle"></i></a>
+                <a href="/contact" aria-label="Contact Us"><i class="fa-solid fa-envelope"></i></a>
+                <a href="/profile.html" aria-label="Profile"><i class="fa-solid fa-user"></i></a>
+            </nav>
+            
+            <!-- Auth button (used by both) -->
+            <div id="auth-controls"> 
+                <button id="auth-button" class="auth-button">Login/Register</button>
+            </div>
+            
+            <!-- Hamburger (mobile only) -->
+            <button class="hamburger-icon" id="hamburger-icon" aria-label="Open menu">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+        
+    </header>
+    
+    <!-- This nav is *only* the mobile sidebar -->
+    <nav class="main-nav-sidebar" id="main-nav-sidebar">
+        <!-- Close Icon (Mobile Only) -->
+        <button class="sidebar-close-icon" id="sidebar-close-icon" aria-label="Close menu">
+            <i class="fas fa-times"></i>
+        </button>
+        
+        <!-- Navigation links (used by sidebar) -->
+        <a href="/" aria-label="Home"><i class="fa-solid fa-house"></i> <span class="nav-text">Home</span></a>
+        <a href="/products" aria-label="Products"><i class="fa-solid fa-tags"></i> <span class="nav-text">Products</span></a>
+        <a href="/cart" aria-label="Cart">
+            <i class="fa-solid fa-shopping-cart"></i>
+            <span id="cart-count-mobile" style="display: none;">0</span> <!-- Separate count for mobile display -->
+            <span class="nav-text">Cart</span>
+        </a>
+        <a href="/about" aria-label="About Us"><i class="fa-solid fa-info-circle"></i> <span class="nav-text">About Us</span></a>
+        <a href="/contact" aria-label="Contact Us"><i class="fa-solid fa-envelope"></i> <span class="nav-text">Contact Us</span></a>
+        <a href="/profile.html" aria-label="Profile"><i class="fa-solid fa-user"></i> <span class="nav-text">Profile</span></a>
+    </nav>
+
+    <!-- Overlay for sidebar -->
+    <div class="overlay" id="overlay"></div>
+    
+    <!-- CRITICAL DEACTIVATION ALERT MODAL (NEW) -->
+    <div id="deactivated-alert-modal" class="modal">
+        <div class="modal-content">
+            <i class="fa-solid fa-triangle-exclamation" style="font-size: 3rem; color: var(--color-danger); margin-bottom: 15px;"></i>
+            <h3>Account Access Revoked</h3>
+            <p id="deactivated-message-content" style="margin-bottom: 20px;">
+                Your current session must now end.
+            </p>
+            <button id="alert-ok-button" class="alert-button" style="width: auto; padding: 10px 30px;">
+                OK (Logging Out)
+            </button>
+        </div>
+    </div>
+    <!-- END CRITICAL DEACTIVATION ALERT MODAL -->
+
+    <div id="auth-notification" class="notification-banner">
+        🔒 Please login or register to view and purchase products.
+    </div>
+
+    <main id="main-content">
+        <section id="home" class="hero">
+            <div class="hero-content">
+                <h1>
+                    The Power of a Fresh Start.
+                    <span>A New Outfit is a New Beginning.</span>
+                </h1>
+                <p>
+                    It’s more than just clothes, shoes, and bags—it’s armor for your confidence. We believe every day deserves a new sense of purpose. Find the perfect piece, from a statement dress to a sharp pair of shoes, or the essential accessory that ties your entire look together. Your next favorite moment starts here.
+                </p>
+                <button id="cta-products-button" class="cta-button">🛍️ Find Your Next Signature Look</button>
+            </div>
+            
+            <div class="hero-image-container">
+               <!-- Placeholder for image that might not load -->
+               <img src=" /images/products/IMG-20251113-WA0012.jpg" 
+                    alt="Stylish footwear from Lolly's Collection" 
+                    class="product-image"
+                    onerror="this.onerror=null; this.src='/images/products/placeholder.jpg';">
+            </div>
+        </section>
+    </main>
+    
+    <footer class="site-footer">
+        &copy; <span id="current-year"></span> Lolly's Collection. All rights reserved.
+    </footer>
+    
+    <script>
+        const AUTH_STATUS_API_URL = '/api/auth/status';
+        const LOGOUT_API_URL = '/api/logout';
+        const USER_PROFILE_API_URL = '/api/user/profile';
+        const REFRESH_INTERVAL_MS = 1000;
+        
+        // --- Mobile Menu Toggle ---
+        const hamburgerIcon = document.getElementById('hamburger-icon');
+        const sidebarCloseIcon = document.getElementById('sidebar-close-icon');
+        const mainNavSidebar = document.getElementById('main-nav-sidebar'); // This is the sidebar
+        const overlay = document.getElementById('overlay');
+        
+        function openMenu() {
+            mainNavSidebar.classList.add('mobile-menu-open');
+            overlay.classList.add('visible');
+        }
+        
+        function closeMenu() {
+            mainNavSidebar.classList.remove('mobile-menu-open');
+            overlay.classList.remove('visible');
+        }
+        
+        hamburgerIcon.addEventListener('click', openMenu);
+        sidebarCloseIcon.addEventListener('click', closeMenu);
+        overlay.addEventListener('click', closeMenu);
+        
+        
+        // --- Auth & UI Logic ---
+        
+        const authButton = document.getElementById('auth-button');
+
+        const cartCountDesktop = document.getElementById('cart-count');
+        const cartCountMobile = document.getElementById('cart-count-mobile');
+        
+        // Target all protected links in both navs
+        const protectedLinks = document.querySelectorAll('a[href="/products"], a[href="/cart"], a[href="/about"], a[href="/contact"], a[href="/profile.html"], a[href="/order.html"]');
+        
+        const ctaButton = document.getElementById('cta-products-button');
+        document.getElementById('current-year').textContent = new Date().getFullYear();
+
+        let isAuthenticated = false;
+
+        // 1. Function to update UI based on status
+        function updateUI() {
+            if (isAuthenticated) {
+                authButton.textContent = 'Logout';
+                authButton.onclick = handleLogout;
+                
+                // Enable protected links
+                protectedLinks.forEach(link => {
+                    link.classList.remove('disabled-nav-link');
+                    link.onclick = null;
+                });
+            } else {
+                authButton.textContent = 'Login/Register';
+                authButton.onclick = () => { window.location.href = '/auth'; };
+                
+                // Disable protected links
+                protectedLinks.forEach(link => {
+                    link.classList.add('disabled-nav-link');
+                    link.onclick = (e) => { 
+                        e.preventDefault(); 
+                        closeMenu(); // Close menu if open
+                        showNotification("🔒 Please login to access this section."); 
+                    };
+                });
+            }
+        }
+        
+        /**
+         * Executes server logout, displays a modal (if forced), and redirects.
+         */
+        function logoutUser(forceRedirect, message) {
+            // 1. Clear the status check interval
+            if (window.statusIntervalId) clearInterval(window.statusIntervalId);
+            isAuthenticated = false; // Immediately update state
+            updateUI(); // Disable navigation links
+
+            // 2. Display the modal if a critical message exists
+            if (message && forceRedirect) {
+                const modal = document.getElementById('deactivated-alert-modal');
+                document.getElementById('deactivated-message-content').innerHTML = message;
+                
+                // Disable scrolling and interactivity on the main page
+                document.querySelector('.header').style.pointerEvents = 'none';
+                document.getElementById('main-content').style.pointerEvents = 'none';
+                
+                modal.classList.add('is-open');
+                document.body.style.overflow = 'hidden';
+
+                // 3. Set up the handler for the OK button
+                document.getElementById('alert-ok-button').onclick = () => {
+                    // Attempt to destroy session on server (fire and forget)
+                    fetch(LOGOUT_API_URL, { method: 'POST' }).finally(() => {
+                        window.location.href = '/auth'; // Force redirection
+                    });
+                };
+            } else {
+                // If no critical message, just logout silently
+                 fetch(LOGOUT_API_URL, { method: 'POST' });
+            }
+        }
+        
+        // 2. Logout handler (Assumes /api/logout exists on server)
+        async function handleLogout() {
+            logoutUser(true, "Logging out...");
+        }
+
+        /**
+         * 3. Status check on page load (Assumes /api/auth/status exists on server)
+         */
+        async function checkAuthStatus() {
+            try {
+                const response = await fetch(AUTH_STATUS_API_URL, { method: 'GET' });
+
+                if (response.ok) { 
+                    isAuthenticated = true;
+                } else if (response.status === 401 || response.status === 403) {
+                    isAuthenticated = false;
+                } else {
+                    isAuthenticated = false;
+                    console.warn('Unexpected API response status:', response.status);
+                }
+            } catch (error) {
+                isAuthenticated = false;
+                console.error('Failed to check auth status due to network error:', error);
+            } finally {
+                updateUI();
+                // If authenticated, also fetch cart count (assuming Cart API is available)
+                if (isAuthenticated) {
+                    // Start the real-time status checker
+                    window.statusIntervalId = setInterval(checkProfileStatusAndLogout, REFRESH_INTERVAL_MS);
+                    fetchCartCount();
+                } else {
+                    if (window.statusIntervalId) clearInterval(window.statusIntervalId);
+                }
+            }
+        }
+        
+        /**
+         * Background checker for account deactivation.
+         */
+        async function checkProfileStatusAndLogout() {
+            if (!isAuthenticated) {
+                if (window.statusIntervalId) clearInterval(window.statusIntervalId);
+                return;
+            }
+            
+            try {
+                const response = await fetch(USER_PROFILE_API_URL);
+                
+                if (response.status === 401) {
+                    // Session expired naturally
+                    logoutUser(true, "Your session has expired. Please log in again.");
+                    return;
+                }
+                
+                const userData = await response.json();
+                
+                // CHECK DEACTIVATION FLAG
+                const isActive = userData.isActive === true || userData.isActive === 1;
+                
+                if (!isActive) {
+                    // Critical deactivation detected by admin
+                    logoutUser(true, "Your account has been **DEACTIVATED** by the administrator. Your current session must now end.");
+                }
+
+            } catch (error) {
+                console.error("Background status check error:", error.message);
+            }
+        }
+
+
+        // --- 4. Handle CTA Click ---
+        if (ctaButton) {
+            ctaButton.addEventListener('click', () => {
+                if (isAuthenticated) {
+                    window.location.href = '/products';
+                } else {
+                    showNotification("🔒 Please login or register to view and purchase products.");
+                }
+            });
+        }
+        
+        // --- 5. Cart Count Handler ---
+        async function fetchCartCount() {
+            try {
+                const response = await fetch('/api/cart');
+                if (response.ok) {
+                    const cart = await response.json();
+                    const count = cart.length || 0;
+                    
+                    const counts = [cartCountDesktop, cartCountMobile];
+                    counts.forEach(cartCount => {
+                        if (count > 0) {
+                            cartCount.textContent = count;
+                            cartCount.style.display = 'block';
+                        } else {
+                            cartCount.style.display = 'none';
+                        }
+                    });
+                }
+            } catch (error) {
+                // Fail silently if network error or API is down
+            }
+        }
+
+
+        // --- New Function: Show and Dismiss Stylish Notification ---
+        function showNotification(message) {
+            const notification = document.getElementById('auth-notification');
+            
+            notification.textContent = message;
+            notification.style.display = 'block';
+            notification.style.opacity = '1';
+            
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                
+                setTimeout(() => {
+                    notification.style.display = 'none';
+                }, 300);
+            }, 4000); 
+        }
+
+
+        // Initial call to check status and set up the interface
+        checkAuthStatus();
+        
+        // Failsafe: Clear interval if user navigates away
+        window.onbeforeunload = function() {
+            if (window.statusIntervalId) clearInterval(window.statusIntervalId);
+        };
+    </script>
+</body>
+</html>
