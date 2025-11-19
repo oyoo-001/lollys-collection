@@ -294,7 +294,7 @@ async function updateUserStatus(userId, newStatus) {
 }
 module.exports = {
     pool,
-    initializeTables,
+   
     findUserById, 
     findAllUsers,
     saveContactMessage,
