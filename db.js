@@ -14,9 +14,8 @@ const pool = mysql.createPool({
     queueLimit: 0,
 
     ssl: {
-        // Load the CA certificate file you saved
-        ca: fs.readFileSync(path.join(__dirname, 'ca.pem')) 
-        
+        // 🚨 CRITICAL: Set to true to bypass validation
+        rejectUnauthorized: false 
     }
 });
 
