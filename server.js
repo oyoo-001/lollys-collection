@@ -19,7 +19,7 @@ const cors = require('cors');
 
 // Import DB functions
 // ASSUMPTION: db.js functions are updated to handle idNumber and balance fetching/updating.
-const { pool, findUserById, findAllUsers, saveContactMessage, getAllContactMessages, updateUserProfile, findUserOrders, findUserByEmail, updatePassword, updateUserStatus, updateProduct} = require('./db'); 
+const { pool, findUserById, findAllUsers, saveContactMessage, getAllContactMessages, updateUserProfile, findUserOrders, findUserByEmail, updatePassword, updateUserStatus, updateProduct, fetchWalletHistory} = require('./db'); 
 
 const passwordResetCache = {}; 
 
@@ -448,8 +448,7 @@ app.post('/api/user/profile', isAuthenticated, upload.single('profilePicture'), 
 
 
     try {
-        // ASSUMPTION: updateUserProfile is updated in db.js to handle idNumber
-        // Update DB call to include idNumber
+        // Updated DB call to include idNumber
         const affectedRows = await db.updateUserProfile(userId, phoneNumber, newProfilePictureUrl, idNumber); 
         if (affectedRows > 0) {
             return res.json({ 
@@ -484,6 +483,18 @@ app.get('/api/wallet/balance', isAuthenticated, async (req, res) => {
     }
 });
 
+// NEW: Wallet Transaction History Endpoint
+app.get('/api/wallet/history', isAuthenticated, async (req, res) => {
+    const userId = req.session.userId;
+    try {
+        const history = await db.fetchWalletHistory(userId);
+        res.json(history);
+    } catch (error) {
+        console.error('Error fetching wallet history:', error);
+        res.status(500).json({ message: 'Failed to retrieve transaction history.' });
+    }
+});
+
 app.post('/api/wallet/mpesa/pay', isAuthenticated, async (req, res) => {
     const userId = req.session.userId;
     const { phoneNumber, amount } = req.body;
@@ -506,14 +517,21 @@ app.post('/api/wallet/mpesa/pay', isAuthenticated, async (req, res) => {
     
     setTimeout(async () => {
         try {
-            // Assuming a successful M-Pesa transaction adds to the balance
+            // 1. Update balance
             await pool.execute(
                 'UPDATE users SET balance = balance + ? WHERE id = ?',
                 [numericAmount, userId]
             );
+            
+            // 2. Log transaction (NEW)
+            await pool.execute(
+                'INSERT INTO wallet_transactions (user_id, transaction_type, amount, description) VALUES (?, ?, ?, ?)',
+                [userId, 'DEPOSIT', numericAmount, `M-Pesa Deposit from ${phoneNumber}`]
+            );
+
             console.log(`MOCK: User ${userId} balance credited with Ksh ${numericAmount} after M-Pesa push.`);
         } catch (e) {
-            console.error(`MOCK ERROR: Failed to update balance for user ${userId}:`, e);
+            console.error(`MOCK ERROR: Failed to update balance/log transaction for user ${userId}:`, e);
         }
     }, MOCK_DELAY_MS);
 

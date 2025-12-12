@@ -413,6 +413,36 @@
             color: var(--color-pink-dark);
         }
         
+        /* Transaction History Table Styling */
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+        .history-table th, .history-table td {
+            padding: 12px;
+            text-align: left;
+        }
+        .history-table thead tr {
+            background-color: var(--color-pink-dark);
+            color: white;
+        }
+        .history-table tbody tr {
+            border-bottom: 1px solid var(--color-border-medium);
+        }
+        .history-table tbody tr:last-child {
+            border-bottom: none;
+        }
+        .history-table tbody tr:hover {
+            background-color: #fce4ec;
+        }
+        /* Color coding for transaction type */
+        .trans-deposit { color: var(--color-success); font-weight: 600; }
+        .trans-purchase { color: var(--color-danger); font-weight: 600; }
+        
         /* --- Responsive Adjustments --- */
         @media (min-width: 768px) {
             .mobile-sidebar-select {
@@ -603,27 +633,31 @@
                     <div id="wallet-message" style="margin-top: 20px;"></div>
                 </section>
                 
-                <!-- 3. Transaction History Section (Placeholder) -->
+                <!-- 3. Transaction History Section -->
                 <section id="history-section" class="content-section">
                     <div class="profile-header">
                         <i class="fas fa-history" style="font-size: 3rem; color: var(--color-pink-accent);"></i>
-                        <h1>Transaction History</h1>
+                        <h1>Wallet Transaction History</h1>
                     </div>
-                    <p style="text-align: center; color: var(--color-text-subtle);">Detailed transaction and order history will appear here.</p>
-                    <table style="width: 100%; border-collapse: collapse; margin-top: 30px;">
+                    
+                    <table class="history-table">
                         <thead>
-                            <tr style="background-color: #fce4ec;">
-                                <th style="padding: 12px; text-align: left;">Date</th>
-                                <th style="padding: 12px; text-align: left;">Description</th>
-                                <th style="padding: 12px; text-align: right;">Amount</th>
+                            <tr>
+                                <th style="width: 20%;">Date</th>
+                                <th style="width: 20%;">Type</th>
+                                <th style="width: 40%;">Description</th>
+                                <th style="width: 20%; text-align: right;">Amount (Ksh)</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody id="transaction-history-body">
+                            <!-- History items will be inserted here by JavaScript -->
                             <tr>
-                                <td colspan="3" style="padding: 20px; text-align: center; color: var(--color-text-subtle);">No transactions found.</td>
+                                <td colspan="4" style="text-align: center; color: var(--color-text-subtle);">Loading transactions...</td>
                             </tr>
                         </tbody>
                     </table>
+
+                    <div id="history-message" class="msg-error" style="margin-top: 20px; display: none;"></div>
                 </section>
                 
                 <!-- 4. Theme Settings Section (Placeholder) -->
@@ -707,6 +741,7 @@
     <!-- 3. NEW: Profile Completion Modal (Forces user to set ID/Phone) -->
     <div id="profile-completion-modal" class="modal">
         <div class="modal-content">
+            <span class="modal-close-btn" onclick="closeModal('profile-completion')">&times;</span>
             <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: var(--color-warning); margin-bottom: 10px;"></i>
             <h3>Profile Update Required</h3>
             <p>For security and service integrity (including Wallet deposits), please complete your profile with your **ID Number** and **Phone Number**.</p>
@@ -787,6 +822,7 @@
         const LOGOUT_API_URL = '/api/logout';
         const BALANCE_API_URL = '/api/wallet/balance';
         const MPESA_API_URL = '/api/wallet/mpesa/pay';
+        const HISTORY_API_URL = '/api/wallet/history'; // NEW API Endpoint
         
         const REFRESH_INTERVAL_MS = 3000; // 3 second refresh rate
         
@@ -865,9 +901,11 @@
                     document.getElementById('settings-toggle').querySelector('.settings-submenu').scrollHeight + "px";
             }
             
-            // 5. Trigger data fetch for Wallet if navigating to it
+            // 5. Trigger data fetch for Wallet/History if navigating to them
             if (sectionId === 'wallet') {
                 fetchWalletBalance();
+            } else if (sectionId === 'history') {
+                fetchWalletHistory();
             }
         }
 
@@ -930,6 +968,7 @@
                 const isActive = userData.isActive === 1 || userData.isActive === true;
                 
                 if (!isActive) {
+                    console.warn("Account detected as DEACTIVATED. Forcing logout.");
                     logoutUser(true, "Your account has been deactivated by the administrator.");
                 }
 
@@ -1038,6 +1077,56 @@
                 balanceEl.textContent = 'Ksh 0.00';
                 showMessageInElement('wallet-message', 'Network error.', 'error');
             }
+        }
+
+        async function fetchWalletHistory() {
+            if (!isUserAuthenticated) return;
+            const historyBody = document.getElementById('transaction-history-body');
+            const messageElId = 'history-message';
+
+            historyBody.innerHTML = '<tr><td colspan="4" style="text-align: center;">Loading transactions...</td></tr>';
+            showMessageInElement(messageElId, '', 'error'); // Clear previous errors
+
+            try {
+                const response = await fetch(HISTORY_API_URL);
+                if (response.ok) {
+                    const transactions = await response.json();
+                    renderWalletHistory(transactions);
+                } else {
+                    historyBody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--color-danger);">Failed to load history.</td></tr>';
+                    showMessageInElement(messageElId, 'Failed to fetch transaction history.', 'error');
+                }
+            } catch (error) {
+                console.error('Fetch history error:', error);
+                historyBody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--color-danger);">Network error loading history.</td></tr>';
+                showMessageInElement(messageElId, 'Network error loading transaction history.', 'error');
+            }
+        }
+        
+        function renderWalletHistory(transactions) {
+            const historyBody = document.getElementById('transaction-history-body');
+            if (!transactions || transactions.length === 0) {
+                historyBody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--color-text-subtle);">No transactions found.</td></tr>';
+                return;
+            }
+
+            let html = '';
+            transactions.forEach(t => {
+                const date = new Date(t.transaction_date).toLocaleString();
+                const typeClass = t.transaction_type === 'DEPOSIT' || t.transaction_type === 'REFUND' ? 'trans-deposit' : 'trans-purchase';
+                const sign = t.transaction_type === 'DEPOSIT' || t.transaction_type === 'REFUND' ? '+' : '-';
+                const displayAmount = `${sign} Ksh ${parseFloat(t.amount).toFixed(2)}`;
+                
+                html += `
+                    <tr>
+                        <td>${date}</td>
+                        <td>${t.transaction_type}</td>
+                        <td>${t.description}</td>
+                        <td class="${typeClass}" style="text-align: right;">${displayAmount}</td>
+                    </tr>
+                `;
+            });
+            historyBody.innerHTML = html;
         }
 
 
@@ -1193,7 +1282,11 @@
                     // Success, expect STK Push on the user's phone
                     showMessageInElement(messageElId, result.message, 'success');
                     document.getElementById('mpesa-form').reset();
-                    fetchWalletBalance(); // Refresh balance after initiation
+                    // Fetch balance after initiation and history if on history tab
+                    fetchWalletBalance();
+                    if (document.getElementById('history-section').classList.contains('active')) {
+                        fetchWalletHistory(); 
+                    }
                 } else if (response.status === 400) {
                     showMessageInElement(messageElId, result.message, 'error');
                 } else {

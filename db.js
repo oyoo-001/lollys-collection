@@ -159,19 +159,6 @@ async function updatePassword(userId, hashedPassword) {
     }
 }
 
-// db.js (New function to append and export)
-
-/**
- * Fetches all orders for a specific user, with all nested items.
- * Queries both the 'orders' and 'order_items' tables.
- */
-// db.js
-
-/**
- * Fetches all orders for a specific user, with all nested items (MySQL syntax).
- */
-// db.js
-
 /**
  * Fetches all orders for a specific user, with all nested items (MySQL syntax).
  * FIX: Using 'id' instead of 'order_id' for the primary key.
@@ -223,8 +210,9 @@ async function findUserOrders(userId) {
  */
 async function findUserById(userId) {
     try {
+        // UPDATED: Include id_number and balance
         const [rows] = await pool.execute(
-            'SELECT full_name, email, phone_number, profile_picture_url, is_active FROM users WHERE id = ?',
+            'SELECT full_name, email, phone_number, profile_picture_url, is_active, id_number, balance FROM users WHERE id = ?',
             [userId]
         );
         
@@ -238,6 +226,8 @@ async function findUserById(userId) {
             phoneNumber: rows[0].phone_number,
             profilePictureUrl: rows[0].profile_picture_url,
             isActive: rows[0].is_active,
+            idNumber: rows[0].id_number, // NEW
+            balance: rows[0].balance,     // NEW
         };
 
     } catch (error) {
@@ -247,9 +237,9 @@ async function findUserById(userId) {
 }
 
 /**
- * Updates the editable profile fields (phone number and profile picture URL). (NEW)
+ * Updates the editable profile fields (phone number, ID number, and profile picture URL). (UPDATED)
  */
-async function updateUserProfile(userId, phoneNumber, profilePictureUrl) {
+async function updateUserProfile(userId, phoneNumber, profilePictureUrl, idNumber) {
     const fields = [];
     const values = [];
 
@@ -261,6 +251,11 @@ async function updateUserProfile(userId, phoneNumber, profilePictureUrl) {
     if (profilePictureUrl !== undefined) {
         fields.push('profile_picture_url = ?');
         values.push(profilePictureUrl);
+    }
+    // NEW: ID Number update logic
+    if (idNumber !== undefined) {
+        fields.push('id_number = ?');
+        values.push(idNumber);
     }
     
     if (fields.length === 0) return 0;
@@ -293,6 +288,31 @@ async function updateUserStatus(userId, newStatus) {
         throw error;
     }
 }
+
+/**
+ * Fetches the wallet transaction history for a specific user. (NEW)
+ */
+async function fetchWalletHistory(userId) {
+    const query = `
+        SELECT 
+            transaction_date, 
+            transaction_type, 
+            amount, 
+            description 
+        FROM wallet_transactions 
+        WHERE user_id = ? 
+        ORDER BY transaction_date DESC
+    `;
+    try {
+        const [rows] = await pool.execute(query, [userId]);
+        return rows;
+    } catch (error) {
+        console.error('Database error fetching wallet history:', error);
+        throw error;
+    }
+}
+
+
 module.exports = {
     pool,
    
@@ -306,4 +326,5 @@ module.exports = {
     findUserOrders, // New function to fetch all orders with items for a user
     updateUserProfile, // New function to update user profile fields
     updateUserStatus, // New function to update user active status
-    };
+    fetchWalletHistory, // NEW function to fetch wallet transactions
+};
