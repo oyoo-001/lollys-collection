@@ -51,7 +51,7 @@
 
         /* --- HEADER STYLING (Consistent with other pages) --- */
         .site-header {
-            background-color: lightpink;
+            background-color: var(--color-bg-light);
             box-shadow: 0 2px 4px var(--color-shadow);
             padding: 10px 15px;
             display: flex;
@@ -63,7 +63,7 @@
         }
         .logo-link {
             font-family: var(--font-heading);
-            font-size: 1em; /* Adjusted to 1.2em for better visibility */
+            font-size: 1.2em;
             font-weight: 700;
             color: var(--color-pink-dark);
             text-decoration: none;
@@ -91,35 +91,111 @@
             color: var(--color-pink-accent);
             background-color: var(--color-border-medium);
         }
-        .cart-icon-with-count span {
-            font-size: 0.8em; 
-            font-weight: 600;
-            color: var(--color-pink-accent);
-        }
         /* --- END HEADER STYLING --- */
         
         /* --- Main Layout --- */
         .profile-wrapper {
-            max-width: 800px;
+            max-width: 1000px;
             margin: 40px auto;
-            padding: 20px;
+            padding: 0 20px;
+        }
+        
+        .profile-main {
+            display: flex;
+            gap: 20px;
+            min-height: 60vh;
+        }
+        
+        /* --- SIDEBAR STYLING --- */
+        #sidebar {
+            flex: 0 0 250px; /* Fixed width for sidebar */
+            background-color: var(--color-bg-light);
+            padding: 20px 0;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px var(--color-shadow);
+            height: fit-content;
+        }
+        
+        #sidebar ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        #sidebar li a {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            text-decoration: none;
+            color: var(--color-text-dark);
+            font-weight: 500;
+            transition: background-color 0.2s, color 0.2s;
+            cursor: pointer;
         }
 
-        .profile-card {
+        #sidebar li a i {
+            margin-right: 10px;
+            font-size: 1.1em;
+            width: 20px; /* ensure icons align */
+            text-align: center;
+        }
+
+        #sidebar li a:hover,
+        #sidebar li a.active {
+            background-color: #fce4ec; /* light pink background */
+            color: var(--color-pink-dark);
+        }
+        
+        #sidebar li a.active i {
+            color: var(--color-pink-accent);
+        }
+        
+        /* Settings Submenu Styling */
+        .settings-submenu {
+            padding-left: 10px;
+            border-left: 2px solid #f06292;
+            margin-top: 5px;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-in-out;
+        }
+        .settings-submenu li a {
+            padding-left: 40px;
+            font-size: 0.95em;
+            font-weight: 400;
+        }
+        .submenu-toggle-icon {
+            margin-left: auto;
+            transition: transform 0.3s;
+        }
+        .settings-item.open .submenu-toggle-icon {
+            transform: rotate(90deg);
+        }
+        
+        /* --- CONTENT AREA STYLING --- */
+        #content-area {
+            flex-grow: 1;
             background-color: var(--color-bg-light);
             padding: 30px;
             border-radius: 12px;
             box-shadow: 0 5px 20px var(--color-shadow);
-            margin-bottom: 30px;
         }
         
+        .content-section {
+            display: none;
+        }
+        .content-section.active {
+            display: block;
+        }
+
         .profile-header {
             text-align: center;
             margin-bottom: 30px;
         }
         .profile-header h1 {
             font-size: 2.5rem;
-            margin-top: 10px;
+            margin-top: 0;
+            margin-bottom: 20px;
         }
         
         /* --- Profile Picture --- */
@@ -209,6 +285,24 @@
         .update-button:hover {
             background-color: var(--color-pink-accent);
         }
+        
+        /* M-Pesa Button Styling */
+        .mpesa-button {
+            background-color: #008000; /* M-Pesa green */
+            color: white;
+            padding: 15px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: 600;
+            width: 100%;
+            margin-top: 15px;
+            transition: background-color 0.3s;
+        }
+        .mpesa-button:hover {
+            background-color: #006400; 
+        }
 
         /* --- Toast Messages (Error/Success) --- */
         #profile-message {
@@ -220,8 +314,9 @@
         }
         .msg-success { background-color: #e8f5e9; color: var(--color-success); }
         .msg-error { background-color: #ffebee; color: var(--color-danger); }
+        .msg-info { background-color: #fff3e0; color: var(--color-warning); }
         
-        /* --- MODAL STYLES (Access Gate) --- */
+        /* --- MODAL STYLES (General) --- */
         .modal { 
             position: fixed; 
             top: 0; 
@@ -250,13 +345,23 @@
             max-width: 450px;
             box-shadow: 0 5px 25px rgba(0,0,0,0.5);
             text-align: center;
+            position: relative;
         }
-        #access-required-modal .modal-content h3 {
+        .modal-close-btn {
+            position: absolute;
+            top: 10px;
+            right: 15px;
             font-size: 1.8rem;
-            color: var(--color-danger);
+            font-weight: 200;
+            cursor: pointer;
+            color: #777;
+        }
+        .modal-content h3 {
+            font-size: 1.8rem;
+            color: var(--color-pink-dark);
             margin-top: 10px;
         }
-        #access-required-modal .modal-content button {
+        .modal-content button {
             background-color: var(--color-pink-accent);
             padding: 10px 20px;
             margin-top: 15px;
@@ -267,41 +372,92 @@
             cursor: pointer;
         }
 
-        #deactivated-alert-modal .modal-content {
-    background-color: var(--color-bg-light);
-    padding: 40px; 
-    border-radius: 12px;
-    width: 90%;
-    max-width: 450px;
-    box-shadow: 0 5px 25px rgba(0,0,0,0.5);
-    text-align: center;
-}
+        #deactivated-alert-modal .modal-content h3, 
+        #access-required-modal .modal-content h3 {
+             color: var(--color-danger);
+        }
+        #profile-completion-modal .modal-content h3 {
+             color: var(--color-warning);
+        }
 
-#deactivated-alert-modal .modal-content h3 {
-    font-size: 1.8rem;
-    color: var(--color-danger); /* Use danger color for alert header */
-    margin-top: 10px;
-    border-bottom: none; /* Ensure no line under the header */
-}
+        #alert-ok-button {
+            background-color: var(--color-pink-accent);
+            color: white;
+            padding: 10px 30px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background-color 0.3s;
+        }
 
-#alert-ok-button {
-    background-color: var(--color-pink-accent);
-    color: white;
-    padding: 10px 30px;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: 600;
-    transition: background-color 0.3s;
-}
-
-#alert-ok-button:hover {
-    background-color: var(--color-pink-dark);
-}
+        #alert-ok-button:hover {
+            background-color: var(--color-pink-dark);
+        }
+        
+        /* --- Two-Factor Authentication Modal Specifics --- */
+        .two-factor-option {
+            border: 2px solid var(--color-border-medium);
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            cursor: pointer;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+        .two-factor-option:hover {
+            border-color: var(--color-pink-accent);
+            box-shadow: 0 0 10px rgba(233, 30, 99, 0.2);
+        }
+        .two-factor-option h4 {
+            margin-top: 0;
+            color: var(--color-pink-dark);
+        }
+        
         /* --- Responsive Adjustments --- */
-        @media (max-width: 600px) {
-            .profile-card {
+        @media (min-width: 768px) {
+            .mobile-sidebar-select {
+                display: none;
+            }
+        }
+        @media (max-width: 767px) {
+            .profile-wrapper {
+                margin: 20px 0;
+                padding: 0 10px;
+            }
+            .profile-main {
+                flex-direction: column;
+                gap: 15px;
+            }
+            #sidebar {
+                flex: none;
+                width: 100%;
+                padding: 0;
+                border-radius: 8px;
+                box-shadow: none;
+            }
+            /* Hide the list version of the sidebar on mobile */
+            #sidebar ul {
+                display: none;
+            }
+
+            /* Mobile Dropdown Menu */
+            .mobile-sidebar-select {
+                display: block;
+                width: 100%;
+                padding: 12px;
+                border: 1px solid var(--color-border-medium);
+                border-radius: 8px;
+                background-color: var(--color-bg-light);
+                font-size: 1rem;
+                font-family: var(--font-body);
+                color: var(--color-text-dark);
+                box-shadow: 0 2px 5px var(--color-shadow);
+                margin-bottom: 10px;
+            }
+
+            #content-area {
                 padding: 20px;
+                border-radius: 8px;
             }
             .profile-header h1 {
                 font-size: 2rem;
@@ -329,61 +485,200 @@
 
     <div class="profile-wrapper gated-content disabled">
         
-        <div class="profile-card">
-            <div class="profile-header">
-                <i class="fas fa-user-circle" style="font-size: 3rem; color: var(--color-pink-accent);"></i>
-                <h1>My Account Details</h1>
-            </div>
-
-            <form id="profile-form" enctype="multipart/form-data">
-                <input type="hidden" id="current-pic-url" name="currentProfilePictureUrl">
-                
-                <div id="profile-picture-container">
-                    <img id="current-profile-picture" 
-                         src="/images/profiles/default_profile.png" 
-                         alt="Current Profile Picture"
-                         onerror="this.onerror=null;this.src='/images/profiles/default_profile.png';"
-                    >
-                    <label id="profile-picture-upload" for="file-input" title="Change Picture">
-                        <i class="fas fa-camera"></i>
-                    </label>
-                    <input type="file" id="file-input" name="profilePicture" accept="image/*">
-                </div>
-
-                <div class="form-group">
-                    <label for="full-name"><i class="fas fa-user"></i> Full Name:</label>
-                    <input type="text" id="full-name" name="name" readonly required>
-                </div>
-
-                <div class="form-group">
-                    <label for="email"><i class="fas fa-envelope"></i> Email Address:</label>
-                    <input type="email" id="email" name="email" readonly required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="phone-number"><i class="fas fa-phone"></i> Phone Number:</label>
-                    <input type="text" id="phone-number" name="phoneNumber" placeholder="e.g., 07XXXXXXXX">
-                    <p style="font-size: 0.85rem; color: var(--color-text-subtle); margin-top: 5px;">You can update your phone number here.</p>
-                </div>
-
-                <div class="form-group">
-                    <label><i class="fas fa-shield-alt"></i> Account Status:</label>
-                    <span id="account-status-display" class="read-only-badge">
-                        Loading...
-                    </span>
-                    <p style="font-size: 0.85rem; color: var(--color-text-subtle); margin-top: 5px;">(Managed by Administrator)</p>
-                </div>
-
-                <button type="submit" class="update-button" id="update-btn">
-                    <i class="fas fa-save"></i> Save Changes
-                </button>
-            </form>
+        <div class="profile-main">
+            <!-- Mobile Sidebar Selector -->
+            <select class="mobile-sidebar-select" onchange="loadSection(this.value)">
+                <option value="account" selected>My Account</option>
+                <option value="wallet">My Wallet</option>
+                <option value="history">Transaction History</option>
+                <option value="theme">Settings: Theme</option>
+                <option value="2fa">Settings: 2FA</option>
+            </select>
             
-            <div id="profile-message" style="display: none;"></div>
+            <!-- Desktop Sidebar -->
+            <aside id="sidebar">
+                <ul>
+                    <li><a class="nav-link active" data-section="account" onclick="loadSection('account')"><i class="fas fa-user"></i> My Account</a></li>
+                    <li><a class="nav-link" data-section="wallet" onclick="loadSection('wallet')"><i class="fas fa-wallet"></i> My Wallet</a></li>
+                    <li><a class="nav-link" data-section="history" onclick="loadSection('history')"><i class="fas fa-history"></i> Transaction History</a></li>
+                    
+                    <li id="settings-toggle" class="settings-item">
+                        <a onclick="toggleSettingsSubmenu(this)">
+                            <i class="fas fa-cog"></i> Settings
+                            <i class="fas fa-chevron-right submenu-toggle-icon"></i>
+                        </a>
+                        <ul class="settings-submenu">
+                            <li><a class="nav-link" data-section="theme" onclick="loadSection('theme')"><i class="fas fa-palette"></i> Theme</a></li>
+                            <li><a class="nav-link" data-section="2fa" onclick="loadSection('2fa')"><i class="fas fa-lock"></i> Two-Factor Auth</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </aside>
+            
+            <!-- Content Area -->
+            <main id="content-area">
+                
+                <!-- 1. My Account Section -->
+                <section id="account-section" class="content-section active">
+                    <div class="profile-header">
+                        <i class="fas fa-user-circle" style="font-size: 3rem; color: var(--color-pink-accent);"></i>
+                        <h1>My Account Details</h1>
+                    </div>
+
+                    <form id="profile-form" enctype="multipart/form-data">
+                        <input type="hidden" id="current-pic-url" name="currentProfilePictureUrl">
+                        
+                        <div id="profile-picture-container">
+                            <img id="current-profile-picture" 
+                                 src="/images/profiles/default_profile.png" 
+                                 alt="Current Profile Picture"
+                                 onerror="this.onerror=null;this.src='/images/profiles/default_profile.png';"
+                            >
+                            <label id="profile-picture-upload" for="file-input" title="Change Picture">
+                                <i class="fas fa-camera"></i>
+                            </label>
+                            <input type="file" id="file-input" name="profilePicture" accept="image/*">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="full-name"><i class="fas fa-user"></i> Full Name:</label>
+                            <input type="text" id="full-name" name="name" readonly required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="email"><i class="fas fa-envelope"></i> Email Address:</label>
+                            <input type="email" id="email" name="email" readonly required>
+                        </div>
+                        
+                         <!-- NEW: ID Number field -->
+                        <div class="form-group">
+                            <label for="id-number"><i class="fas fa-id-card"></i> ID Number:</label>
+                            <input type="text" id="id-number" name="idNumber" placeholder="Enter your National ID Number" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="phone-number"><i class="fas fa-phone"></i> Phone Number:</label>
+                            <input type="text" id="phone-number" name="phoneNumber" placeholder="e.g., 07XXXXXXXX" required>
+                            <p style="font-size: 0.85rem; color: var(--color-text-subtle); margin-top: 5px;">You can update your phone number here.</p>
+                        </div>
+
+                        <div class="form-group">
+                            <label><i class="fas fa-shield-alt"></i> Account Status:</label>
+                            <span id="account-status-display" class="read-only-badge">
+                                Loading...
+                            </span>
+                            <p style="font-size: 0.85rem; color: var(--color-text-subtle); margin-top: 5px;">(Managed by Administrator)</p>
+                        </div>
+
+                        <button type="submit" class="update-button" id="update-btn">
+                            <i class="fas fa-save"></i> Save Changes
+                        </button>
+                    </form>
+                    
+                    <div id="profile-message" style="display: none;"></div>
+                </section>
+                
+                <!-- 2. My Wallet Section (Active Content) -->
+                <section id="wallet-section" class="content-section">
+                    <div class="profile-header">
+                        <i class="fas fa-wallet" style="font-size: 3rem; color: var(--color-pink-accent);"></i>
+                        <h1>My Wallet</h1>
+                    </div>
+                    
+                    <div style="padding: 20px; border: 1px solid var(--color-border-medium); text-align: center; border-radius: 12px; margin-bottom: 25px;">
+                         <h2 style="color: var(--color-success); margin-bottom: 10px;">Current Balance</h2>
+                         <p style="font-size: 2.5rem; font-weight: 700; margin: 0;" id="wallet-balance-display">Ksh 0.00</p>
+                    </div>
+                    
+                    <h3 style="font-size: 1.5rem; text-align: left; border-bottom: 1px solid var(--color-border-medium); padding-bottom: 10px; margin-top: 30px;">Deposit Options</h3>
+                    
+                    <button class="mpesa-button" onclick="openModal('mpesa')">
+                        <i class="fas fa-mobile-alt"></i> Pay with M-Pesa (STK Push)
+                    </button>
+                    
+                    <button class="update-button" onclick="openModal('manual-deposit')" style="background-color: var(--color-text-subtle); margin-top: 15px;">
+                        <i class="fas fa-money-check-alt"></i> Manual Paybill Deposit
+                    </button>
+                    
+                    <div id="wallet-message" style="margin-top: 20px;"></div>
+                </section>
+                
+                <!-- 3. Transaction History Section (Placeholder) -->
+                <section id="history-section" class="content-section">
+                    <div class="profile-header">
+                        <i class="fas fa-history" style="font-size: 3rem; color: var(--color-pink-accent);"></i>
+                        <h1>Transaction History</h1>
+                    </div>
+                    <p style="text-align: center; color: var(--color-text-subtle);">Detailed transaction and order history will appear here.</p>
+                    <table style="width: 100%; border-collapse: collapse; margin-top: 30px;">
+                        <thead>
+                            <tr style="background-color: #fce4ec;">
+                                <th style="padding: 12px; text-align: left;">Date</th>
+                                <th style="padding: 12px; text-align: left;">Description</th>
+                                <th style="padding: 12px; text-align: right;">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="3" style="padding: 20px; text-align: center; color: var(--color-text-subtle);">No transactions found.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </section>
+                
+                <!-- 4. Theme Settings Section (Placeholder) -->
+                <section id="theme-section" class="content-section">
+                    <div class="profile-header">
+                        <i class="fas fa-palette" style="font-size: 3rem; color: var(--color-pink-accent);"></i>
+                        <h1>Theme Settings</h1>
+                    </div>
+                    <p style="text-align: center; color: var(--color-text-subtle);">Customize the appearance of the application.</p>
+                    
+                    <div style="max-width: 300px; margin: 30px auto; text-align: left;">
+                        <label for="theme-selector" style="font-weight: 600; display: block; margin-bottom: 10px;">Select Theme:</label>
+                        <select id="theme-selector" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--color-border-medium);">
+                            <option value="light" selected>Light Mode (Default)</option>
+                            <option value="dark" disabled>Dark Mode (Coming Soon)</option>
+                            <option value="pink-accent" disabled>Pink Accent (Coming Soon)</option>
+                        </select>
+                    </div>
+                </section>
+                
+                <!-- 5. 2FA Settings Section (Placeholder) -->
+                <section id="2fa-section" class="content-section">
+                    <div class="profile-header">
+                        <i class="fas fa-lock" style="font-size: 3rem; color: var(--color-pink-accent);"></i>
+                        <h1>Two-Factor Authentication (2FA)</h1>
+                    </div>
+                    <p style="text-align: center; color: var(--color-text-subtle);">Add an extra layer of security to your account.</p>
+                    
+                    <div style="max-width: 500px; margin: 30px auto;">
+                        <h2 style="font-size: 1.5rem; text-align: left; margin-top: 0;">2FA Status: <span style="color: var(--color-danger);">Disabled</span></h2>
+                        <p style="text-align: left; margin-bottom: 30px;">Choose your preferred method to verify your identity upon login.</p>
+                        
+                        <div class="two-factor-option" onclick="showMessageInElement('profile-message', 'Setup process for Email OTP will begin here.', 'info')">
+                            <h4><i class="fas fa-envelope-open-text"></i> Email OTP</h4>
+                            <p style="font-size: 0.9rem; margin: 5px 0 0;">Receive a One-Time Password via your registered email address.</p>
+                        </div>
+
+                        <div class="two-factor-option" onclick="showMessageInElement('profile-message', 'Setup process for Google Authenticator will begin here.', 'info')">
+                            <h4><i class="fas fa-qrcode"></i> Google Authenticator (TOTP)</h4>
+                            <p style="font-size: 0.9rem; margin: 5px 0 0;">Use an authenticator app (e.g., Google or Microsoft Authenticator) for time-based codes.</p>
+                        </div>
+                        
+                        <button class="update-button" style="margin-top: 30px; background-color: var(--color-danger); cursor: not-allowed;" disabled>
+                            Disable 2FA
+                        </button>
+                    </div>
+                </section>
+
+            </main>
         </div>
         
     </div>
 
+    <!-- Modals -->
+    <!-- 1. Access Required Modal (Existing) -->
     <div id="access-required-modal" class="modal">
         <div class="modal-content">
             <i class="fa-solid fa-user-lock" style="font-size: 3rem; color: var(--color-pink-dark); margin-bottom: 10px;"></i>
@@ -394,6 +689,8 @@
             </button>
         </div>
     </div>
+    
+    <!-- 2. Deactivated Alert Modal (Existing) -->
     <div id="deactivated-alert-modal" class="modal">
         <div class="modal-content" style="max-width: 450px;">
             <i class="fa-solid fa-triangle-exclamation" style="font-size: 3rem; color: var(--color-danger); margin-bottom: 15px;"></i>
@@ -406,23 +703,180 @@
             </button>
         </div>
     </div>
+
+    <!-- 3. NEW: Profile Completion Modal (Forces user to set ID/Phone) -->
+    <div id="profile-completion-modal" class="modal">
+        <div class="modal-content">
+            <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: var(--color-warning); margin-bottom: 10px;"></i>
+            <h3>Profile Update Required</h3>
+            <p>For security and service integrity (including Wallet deposits), please complete your profile with your **ID Number** and **Phone Number**.</p>
+            
+            <form id="completion-form" enctype="multipart/form-data">
+                <input type="hidden" id="completion-pic-url" name="currentProfilePictureUrl">
+
+                <div class="form-group" style="text-align: left;">
+                    <label for="completion-id-number"><i class="fas fa-id-card"></i> ID Number:</label>
+                    <input type="text" id="completion-id-number" name="idNumber" placeholder="Enter National ID Number" required>
+                </div>
+                
+                <div class="form-group" style="text-align: left;">
+                    <label for="completion-phone-number"><i class="fas fa-phone"></i> Phone Number:</label>
+                    <input type="text" id="completion-phone-number" name="phoneNumber" placeholder="e.g., 07XXXXXXXX" required>
+                </div>
+                
+                <button type="submit" class="update-button" id="completion-update-btn">
+                    Complete Profile
+                </button>
+            </form>
+            <div id="completion-message" class="msg-error" style="margin-top: 15px; display: none;"></div>
+        </div>
+    </div>
+
+    <!-- 4. NEW: M-Pesa Payment Modal -->
+    <div id="mpesa-modal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close-btn" onclick="closeModal('mpesa')">&times;</span>
+            <i class="fas fa-mobile-alt" style="font-size: 3rem; color: #008000; margin-bottom: 10px;"></i>
+            <h3>M-Pesa Deposit (STK Push)</h3>
+            <p>Enter the M-Pesa phone number and amount to receive an STK Push prompt.</p>
+            
+            <form id="mpesa-form">
+                <div class="form-group" style="text-align: left;">
+                    <label for="mpesa-phone">M-Pesa Phone (254...):</label>
+                    <input type="tel" id="mpesa-phone" placeholder="e.g., 2547XXXXXXXX" required>
+                </div>
+                <div class="form-group" style="text-align: left;">
+                    <label for="mpesa-amount">Amount (Ksh):</label>
+                    <input type="number" id="mpesa-amount" placeholder="Min 100" min="100" required>
+                </div>
+                <button type="submit" class="mpesa-button" id="mpesa-submit-btn">
+                    <i class="fas fa-check-circle"></i> Initiate STK Push
+                </button>
+            </form>
+            <div id="mpesa-message" class="msg-info" style="margin-top: 15px; display: none;"></div>
+        </div>
+    </div>
+
+    <!-- 5. NEW: Manual Deposit Modal -->
+    <div id="manual-deposit-modal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close-btn" onclick="closeModal('manual-deposit')">&times;</span>
+            <i class="fas fa-money-check-alt" style="font-size: 3rem; color: var(--color-pink-accent); margin-bottom: 10px;"></i>
+            <h3>Manual Paybill Deposit</h3>
+            <p>Follow these steps to deposit funds from your M-Pesa menu:</p>
+            <div style="text-align: left; margin-top: 20px;">
+                <p><strong>Step 1:</strong> Go to 'Lipa na M-Pesa' -> 'Pay Bill'</p>
+                <p><strong>Step 2:</strong> Enter Business Number:</p>
+                <div class="form-group">
+                     <input type="text" value="6336864" readonly style="text-align: center; font-weight: bold; background-color: #f0f0f0;">
+                </div>
+                <p><strong>Step 3:</strong> Enter Account Number (Your ID):</p>
+                <div class="form-group">
+                     <input type="text" id="manual-account-id" value="[Your ID will appear here]" readonly style="text-align: center; font-weight: bold; background-color: #f0f0f0;">
+                </div>
+                <p><strong>Step 4:</strong> Enter Amount and your M-Pesa PIN.</p>
+                <p class="msg-info" style="text-align: center;">Funds will be credited automatically once Safaricom confirms payment.</p>
+            </div>
+        </div>
+    </div>
+
+
     <script>
         const AUTH_STATUS_API_URL = '/api/auth/status';
         const PROFILE_API_URL = '/api/user/profile';
         const LOGOUT_API_URL = '/api/logout';
-        const REFRESH_INTERVAL_MS = 1000; // 1 second refresh rate
+        const BALANCE_API_URL = '/api/wallet/balance';
+        const MPESA_API_URL = '/api/wallet/mpesa/pay';
+        
+        const REFRESH_INTERVAL_MS = 3000; // 3 second refresh rate
         
         let isUserAuthenticated = false; 
+        let currentProfileData = {}; // Store profile data globally
 
-        // --- GATING LOGIC ---
+        // --- GENERAL UTILITIES ---
+        function showMessageInElement(elId, message, type) {
+            const messageEl = document.getElementById(elId);
+            messageEl.textContent = message;
+            messageEl.className = `msg-${type}`;
+            messageEl.style.display = 'block';
+            setTimeout(() => { messageEl.style.display = 'none'; }, 5000);
+        }
+
+        function openModal(modalId) {
+             const modal = document.getElementById(`${modalId}-modal`);
+             modal.classList.add('is-open');
+             document.body.style.overflow = 'hidden';
+             
+             // Specific setup for manual deposit modal
+             if (modalId === 'manual-deposit') {
+                const idNumber = currentProfileData.idNumber || 'N/A';
+                document.getElementById('manual-account-id').value = idNumber;
+             }
+        }
+
+        function closeModal(modalId) {
+             const modal = document.getElementById(`${modalId}-modal`);
+             modal.classList.remove('is-open');
+             document.body.style.overflow = 'auto';
+        }
+
+        // --- NAVIGATION LOGIC ---
+        
+        function toggleSettingsSubmenu(el) {
+            const listItem = el.closest('.settings-item');
+            const submenu = listItem.querySelector('.settings-submenu');
+            const isOpen = listItem.classList.contains('open');
+
+            if (isOpen) {
+                submenu.style.maxHeight = null;
+                listItem.classList.remove('open');
+            } else {
+                submenu.style.maxHeight = submenu.scrollHeight + "px";
+                listItem.classList.add('open');
+            }
+        }
+        
+        function loadSection(sectionId) {
+            // 1. Update active class for desktop sidebar
+            document.querySelectorAll('.nav-link').forEach(link => {
+                if (link.dataset.section === sectionId) {
+                    link.classList.add('active');
+                } else {
+                    link.classList.remove('active');
+                }
+            });
+            
+            // 2. Update active content section
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            document.getElementById(`${sectionId}-section`).classList.add('active');
+            
+            // 3. Update mobile select dropdown
+            const mobileSelect = document.querySelector('.mobile-sidebar-select');
+            if (mobileSelect) {
+                mobileSelect.value = sectionId;
+            }
+            
+            // 4. Close settings submenu if a submenu item was clicked
+            if (['theme', '2fa'].includes(sectionId)) {
+                 document.getElementById('settings-toggle').classList.add('open');
+                 document.getElementById('settings-toggle').querySelector('.settings-submenu').style.maxHeight = 
+                    document.getElementById('settings-toggle').querySelector('.settings-submenu').scrollHeight + "px";
+            }
+            
+            // 5. Trigger data fetch for Wallet if navigating to it
+            if (sectionId === 'wallet') {
+                fetchWalletBalance();
+            }
+        }
+
+        // --- GATING & SECURITY LOGIC ---
         
         function redirectToAuthPage() {
             window.location.href = '/auth';
         }
 
-        /**
-         * Checks base authentication status and gates the page.
-         */
         async function checkAuthenticationStatus() {
             const header = document.querySelector('.site-header');
             const wrapper = document.querySelector('.profile-wrapper');
@@ -439,7 +893,6 @@
                     document.body.style.overflow = 'auto'; 
                     return true;
                 } else {
-                    // Unauthenticated initially: Gate the page.
                     isUserAuthenticated = false;
                     header.classList.add('disabled');
                     wrapper.classList.add('disabled');
@@ -458,9 +911,6 @@
             }
         }
 
-        /**
-         * Checks profile status every second. Logs out user if deactivated. (NEW CORE FUNCTION)
-         */
         async function checkProfileStatusAndLogout() {
             if (!isUserAuthenticated) return;
             
@@ -468,63 +918,75 @@
                 const response = await fetch(PROFILE_API_URL);
                 
                 if (response.status === 401 || response.status === 404) {
-                    // Session expired or user profile vanished
-                    console.log("Session expired during check.");
                     logoutUser(true, "Your session has expired. Please log in again.");
                     return;
                 }
                 
                 const userData = await response.json();
+                currentProfileData = userData; // Update global data
                 
-                // 1. Update UI with fresh status
                 populateStatusOnly(userData); 
 
-                // 2. CHECK DEACTIVATION FLAG
                 const isActive = userData.isActive === 1 || userData.isActive === true;
                 
                 if (!isActive) {
-                    console.warn("Account detected as DEACTIVATED. Forcing logout.");
                     logoutUser(true, "Your account has been deactivated by the administrator.");
                 }
 
             } catch (error) {
-                // Ignore silent errors during background refresh
                 console.error("Background status check error:", error.message);
             }
         }
         
         /**
-         * Executes server logout and redirects.
+         * Executes server logout, displays a modal, and redirects.
+         * @param {boolean} forceRedirect - Should we force the redirect after showing the message?
+         * @param {string} message - The critical message to display to the user.
          */
-        let finalLogoutMessage = "You have been logged out."; 
+        function logoutUser(forceRedirect, message) {
+            if (window.statusIntervalId) clearInterval(window.statusIntervalId);
+            
+            const modal = document.getElementById('deactivated-alert-modal');
+            document.getElementById('deactivated-message-content').innerHTML = message;
+            modal.classList.add('is-open');
+            document.body.style.overflow = 'hidden';
 
-/**
- * Executes server logout, displays a modal, and redirects. (MODIFIED)
- * * @param {boolean} forceRedirect - Should we force the redirect after showing the message?
- * @param {string} message - The critical message to display to the user.
- */
-function logoutUser(forceRedirect, message) {
-    // 1. Clear the interval first
-    if (window.statusIntervalId) clearInterval(window.statusIntervalId);
-    
-    finalLogoutMessage = message;
-
-    // 2. Display the modal (instead of alert)
-    const modal = document.getElementById('deactivated-alert-modal');
-    document.getElementById('deactivated-message-content').innerHTML = message;
-    modal.classList.add('is-open');
-    document.body.style.overflow = 'hidden';
-
-    // 3. Set up the handler for the OK button
-    document.getElementById('alert-ok-button').onclick = () => {
-        // Attempt to destroy session on server (fire and forget)
-        fetch(LOGOUT_API_URL, { method: 'POST' }).finally(() => {
-            // Force redirection after the user acknowledges the message
-            window.location.href = '/auth';
-        });
-    };
-}
+            document.getElementById('alert-ok-button').onclick = () => {
+                fetch(LOGOUT_API_URL, { method: 'POST' }).finally(() => {
+                    window.location.href = '/auth';
+                });
+            };
+        }
         
+        /**
+         * Checks if required profile fields are set and forces completion if not.
+         * @returns {boolean} True if profile is complete, false otherwise.
+         */
+        function checkProfileCompletionAndGate() {
+            const idNumber = currentProfileData.idNumber;
+            const phoneNumber = currentProfileData.phoneNumber;
+
+            // Check if ID Number or Phone Number are missing/null/empty strings
+            const isIdMissing = !idNumber || idNumber === 'null' || idNumber.trim() === '';
+            const isPhoneMissing = !phoneNumber || phoneNumber === 'null' || phoneNumber.trim() === '';
+            
+            if (isIdMissing || isPhoneMissing) {
+                // Pre-populate completion modal with existing data if available
+                document.getElementById('completion-id-number').value = isIdMissing ? '' : idNumber;
+                document.getElementById('completion-phone-number').value = isPhoneMissing ? '' : phoneNumber;
+                document.getElementById('completion-pic-url').value = currentProfileData.profilePictureUrl || '';
+                
+                // Gate the rest of the page and show the completion modal
+                document.querySelector('.profile-wrapper').classList.add('disabled');
+                openModal('profile-completion');
+                return false;
+            }
+
+            document.querySelector('.profile-wrapper').classList.remove('disabled');
+            closeModal('profile-completion');
+            return true;
+        }
+
         // --- Data Fetching and Initialization ---
 
         async function fetchProfileData() {
@@ -535,52 +997,70 @@ function logoutUser(forceRedirect, message) {
                 
                 if (response.ok) {
                     const userData = await response.json();
-                    populateForm(userData); // Populate all fields
+                    currentProfileData = userData; // Store for global access/check
+                    populateForm(userData); 
+                    
+                    // Check and enforce profile completion immediately after data fetch
+                    checkProfileCompletionAndGate(); 
+                    
                 } else if (response.status === 401) {
                     checkAuthenticationStatus();
                 } else {
-                    showMessage('Failed to load profile data.', 'error');
+                    showMessageInElement('profile-message', 'Failed to load profile data.', 'error');
                 }
             } catch (error) {
                 console.error('Fetch profile error:', error);
-                showMessage('Network error loading profile.', 'error');
+                showMessageInElement('profile-message', 'Network error loading profile.', 'error');
+            }
+        }
+        
+        async function fetchWalletBalance() {
+            if (!isUserAuthenticated) return;
+            const balanceEl = document.getElementById('wallet-balance-display');
+            balanceEl.textContent = 'Loading...';
+            
+            try {
+                const response = await fetch(BALANCE_API_URL);
+                if (response.ok) {
+                    const data = await response.json();
+                    // Ensure the balance is formatted correctly
+                    const formattedBalance = parseFloat(data.balance).toLocaleString('en-KE', { 
+                        style: 'currency', 
+                        currency: 'Ksh',
+                        minimumFractionDigits: 2 
+                    });
+                    balanceEl.textContent = formattedBalance;
+                } else {
+                    balanceEl.textContent = 'Ksh 0.00';
+                    showMessageInElement('wallet-message', 'Failed to fetch balance.', 'error');
+                }
+            } catch (error) {
+                balanceEl.textContent = 'Ksh 0.00';
+                showMessageInElement('wallet-message', 'Network error.', 'error');
             }
         }
 
 
         /**
- * Renders the profile picture onto the designated image element.
- * Handles checks for null/empty URLs and sets a default fallback image.
- *
- * @param {string | null} imageUrl - The URL of the user's profile picture from the database.
- * @param {string} elementId - The ID of the <img> tag to update (e.g., 'current-profile-picture').
- * @param {string} defaultPath - The local path to the default image.
- */
-function renderProfilePicture(imageUrl, elementId = 'current-profile-picture', defaultPath = '/images/profiles/default_profile.png') {
-    const imgElement = document.getElementById(elementId);
+         * Renders the profile picture onto the designated image element.
+         * @param {string | null} imageUrl - The URL of the user's profile picture from the database.
+         * @param {string} elementId - The ID of the <img> tag to update (e.g., 'current-profile-picture').
+         * @param {string} defaultPath - The local path to the default image.
+         */
+        function renderProfilePicture(imageUrl, elementId = 'current-profile-picture', defaultPath = '/images/profiles/default_profile.png') {
+            const imgElement = document.getElementById(elementId);
 
-    // 1. Check if the target element exists
-    if (!imgElement) {
-        console.error(`Error: <img> element with ID '${elementId}' not found.`);
-        return;
-    }
+            if (!imgElement) return;
 
-    // 2. Determine the source URL
-    let finalUrl = imageUrl;
+            let finalUrl = imageUrl;
 
-    if (!imageUrl || imageUrl.trim() === '' || imageUrl === 'null') {
-        // Use the specified default path if the URL is missing or invalid
-        finalUrl = defaultPath;
-    } 
-    // NOTE: For security and caching reasons, you might append a timestamp/version string to the URL
-    // if it's a dynamic image that might have been recently overwritten.
+            if (!imageUrl || imageUrl.trim() === '' || imageUrl === 'null') {
+                finalUrl = defaultPath;
+            } 
 
-    // 3. Apply the source
-    imgElement.src = finalUrl;
-}
+            imgElement.src = finalUrl;
+        }
 
-// Example usage, assuming 'userData' is the object fetched from '/api/user/profile'
-// renderProfilePicture(userData.profilePictureUrl);
         /**
          * Populates all form fields (used on initial load).
          */
@@ -591,53 +1071,154 @@ function renderProfilePicture(imageUrl, elementId = 'current-profile-picture', d
             document.getElementById('email').value = data.email || '';
            
             // Set Editable Fields
+            document.getElementById('id-number').value = data.idNumber || '';
             document.getElementById('phone-number').value = data.phoneNumber || '';
             document.getElementById('current-pic-url').value = data.profilePictureUrl || '';
-            
-            // Set Profile Picture
-            const profilePicEl = document.getElementById('current-profile-picture');
-            profilePicEl.src = data.profilePictureUrl || '/images/profiles/default_profile.png';
             
             // Set Account Status (Read Only)
             populateStatusOnly(data);
         }
         
         /**
-         * Updates only the status badge (used in 1-second refresh).
+         * Updates only the status badge (used in 3-second refresh).
          */
         function populateStatusOnly(data) {
             const statusDisplay = document.getElementById('account-status-display');
             const isActive = data.isActive === 1 || data.isActive === true;
-            
+            const updateBtn = document.getElementById('update-btn');
+            const profileSection = document.getElementById('account-section');
+
             statusDisplay.textContent = isActive ? 'ACTIVE' : 'DEACTIVATED';
             statusDisplay.className = `status-display status-${isActive ? 'active' : 'deactivated'}`;
             
-            // Re-enable form/button if status was previously deactivated and is now active
-            if (isActive && document.querySelector('.profile-card').style.pointerEvents === 'none') {
-                 document.querySelector('.profile-card').style.pointerEvents = 'auto';
-                 document.getElementById('update-btn').disabled = false;
-            } else if (!isActive && document.querySelector('.profile-card').style.pointerEvents !== 'none') {
-                 // Visually hint that the user cannot update their profile if deactivated
-                 document.querySelector('.profile-card').style.pointerEvents = 'none';
-                 document.getElementById('update-btn').disabled = true;
+            if (isActive) {
+                 profileSection.style.pointerEvents = 'auto';
+                 updateBtn.disabled = false;
+            } else {
+                 profileSection.style.pointerEvents = 'none';
+                 updateBtn.disabled = true;
             }
         }
         
-        // --- Profile Update Handler ---
+        // --- Form Submission Handlers ---
 
-        document.getElementById('profile-form').addEventListener('submit', async function(e) {
+        // Main Profile Form Submission
+        document.getElementById('profile-form').addEventListener('submit', function(e) {
             e.preventDefault();
             if (!isUserAuthenticated) return;
-
-            const updateBtn = document.getElementById('update-btn');
+            submitProfileForm('profile-form', 'profile-message', false);
+        });
+        
+        // Profile Completion Modal Form Submission
+        document.getElementById('completion-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            if (!isUserAuthenticated) return;
+            
+            const form = document.getElementById('completion-form');
+            const messageElId = 'completion-message';
+            const updateBtn = document.getElementById('completion-update-btn');
+            
             updateBtn.disabled = true;
             updateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
             
-            const formData = new FormData(this);
+            const formData = new FormData();
+            formData.append('idNumber', document.getElementById('completion-id-number').value);
+            formData.append('phoneNumber', document.getElementById('completion-phone-number').value);
+            // Must include profile picture fields if present, even if empty
+            formData.append('currentProfilePictureUrl', document.getElementById('completion-pic-url').value);
+
+            try {
+                const response = await fetch(PROFILE_API_URL, {
+                    method: 'POST',
+                    body: formData, 
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showMessageInElement(messageElId, result.message || 'Profile updated!', 'success');
+                    
+                    // Re-fetch data to update global state and UI
+                    await fetchProfileData(); 
+                    // Close modal and ungate the page if successful
+                    setTimeout(() => checkProfileCompletionAndGate(), 1500);
+
+                } else if (response.status === 401) {
+                    checkAuthenticationStatus();
+                } else {
+                    showMessageInElement(messageElId, result.message || 'Update failed.', 'error');
+                }
+            } catch (error) {
+                console.error('Completion update network error:', error);
+                showMessageInElement(messageElId, 'Network error during update.', 'error');
+            } finally {
+                updateBtn.disabled = false;
+                updateBtn.innerHTML = 'Complete Profile';
+            }
+
+        });
+        
+        // M-Pesa Form Submission
+        document.getElementById('mpesa-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            if (!isUserAuthenticated) return;
+            submitMpesaPayment();
+        });
+        
+        async function submitMpesaPayment() {
+             const phone = document.getElementById('mpesa-phone').value;
+             const amount = document.getElementById('mpesa-amount').value;
+             const messageElId = 'mpesa-message';
+             const submitBtn = document.getElementById('mpesa-submit-btn');
+
+             if (parseFloat(amount) < 100) {
+                 showMessageInElement(messageElId, 'Minimum deposit amount is Ksh 100.', 'error');
+                 return;
+             }
+             
+             submitBtn.disabled = true;
+             submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Initiating...';
+             showMessageInElement(messageElId, 'Processing M-Pesa payment...', 'info');
+
+             try {
+                const response = await fetch(MPESA_API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ phoneNumber: phone, amount: amount })
+                });
+
+                const result = await response.json();
+                
+                if (response.ok) {
+                    // Success, expect STK Push on the user's phone
+                    showMessageInElement(messageElId, result.message, 'success');
+                    document.getElementById('mpesa-form').reset();
+                    fetchWalletBalance(); // Refresh balance after initiation
+                } else if (response.status === 400) {
+                    showMessageInElement(messageElId, result.message, 'error');
+                } else {
+                    showMessageInElement(messageElId, result.message || 'Payment initiation failed.', 'error');
+                }
+            } catch (error) {
+                showMessageInElement(messageElId, 'Network error. Could not reach payment gateway.', 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-check-circle"></i> Initiate STK Push';
+            }
+        }
+        
+        async function submitProfileForm(formId, messageElId, isCompletionForm = false) {
+            const form = document.getElementById(formId);
+            const updateBtn = form.querySelector('button[type="submit"]');
+            
+            updateBtn.disabled = true;
+            updateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+            
+            const formData = new FormData(form);
             const fileInput = document.getElementById('file-input');
             
-            // If the user didn't select a new file, remove the placeholder
-            if (fileInput.files.length === 0) {
+            // If the user didn't select a new file, ensure we don't send an empty file field
+            if (fileInput && fileInput.files.length === 0) {
                 formData.delete('profilePicture');
             }
             
@@ -650,45 +1231,33 @@ function renderProfilePicture(imageUrl, elementId = 'current-profile-picture', d
                 const result = await response.json();
 
                 if (response.ok) {
-                    showMessage(result.message || 'Profile updated!', 'success');
+                    showMessageInElement(messageElId, result.message || 'Profile updated!', 'success');
                     
                     if (result.profilePictureUrl) {
-                        document.getElementById('current-profile-picture').src = result.profilePictureUrl;
+                        // Update profile picture elements on both forms
+                        renderProfilePicture(result.profilePictureUrl, 'current-profile-picture');
                         document.getElementById('current-pic-url').value = result.profilePictureUrl;
                     }
-                    fileInput.value = ''; 
+                    if (fileInput) fileInput.value = ''; 
+                    
+                    // Update the main form fields with the newly saved ID/Phone
+                    document.getElementById('id-number').value = formData.get('idNumber');
+                    document.getElementById('phone-number').value = formData.get('phoneNumber');
 
                 } else if (response.status === 401) {
                     checkAuthenticationStatus();
                 } else {
-                    showMessage(result.message || 'Update failed.', 'error');
+                    showMessageInElement(messageElId, result.message || 'Update failed.', 'error');
                 }
             } catch (error) {
                 console.error('Update network error:', error);
-                showMessage('Network error during update.', 'error');
+                showMessageInElement(messageElId, 'Network error during update.', 'error');
             } finally {
                 updateBtn.disabled = false;
-                updateBtn.innerHTML = '<i class="fas fa-save"></i> Save Changes';
+                updateBtn.innerHTML = isCompletionForm ? 'Complete Profile' : '<i class="fas fa-save"></i> Save Changes';
             }
-        });
+        }
         
-        // --- Status Message Display ---
-
-        function showMessage(message, type) {
-            const messageEl = document.getElementById('profile-message');
-            messageEl.textContent = message;
-            messageEl.className = `msg-${type}`;
-            messageEl.style.display = 'block';
-            setTimeout(() => { messageEl.style.display = 'none'; }, 5000);
-        }
-
-        // --- Cart Count Update (Placeholder) ---
-
-        async function updateCartCount() {
-            /* Omitted as cart nav elements are removed in the provided HTML */
-            /* This function is typically left empty or removed if cart icons aren't present */
-        }
-
         // --- File Input Change Listener (Show preview immediately) ---
 
         document.getElementById('file-input').addEventListener('change', function(e) {
@@ -708,17 +1277,19 @@ function renderProfilePicture(imageUrl, elementId = 'current-profile-picture', d
             const loggedIn = await checkAuthenticationStatus();
             
             if (loggedIn) {
-                fetchProfileData();
-                updateCartCount();
+                // Fetch data, which will populate form, check status, and enforce completion
+                await fetchProfileData(); 
                 
-                // 2. Start 1-second background security check loop
+                // 2. Start background security check loop
                 window.statusIntervalId = setInterval(checkProfileStatusAndLogout, REFRESH_INTERVAL_MS);
             } else {
-                // If not logged in initially, no need for the background check
                 if (window.statusIntervalId) clearInterval(window.statusIntervalId);
             }
             
             window.redirectToAuthPage = redirectToAuthPage;
+            
+            // Set initial content and sidebar state
+            loadSection('account');
         });
         
         // Failsafe: Clear interval if user navigates away

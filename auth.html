@@ -96,10 +96,14 @@
             font-size: 1.1rem;
             font-weight: 600;
             width: 100%;
-            transition: background-color 0.3s;
+            transition: background-color 0.3s, opacity 0.3s; /* Added opacity for disabled state */
         }
-        button[type="submit"]:hover {
+        button[type="submit"]:hover:not(:disabled) { /* Apply hover effect only when not disabled */
             background-color: var(--color-pink-dark);
+        }
+        button[type="submit"]:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
         }
         .message {
             margin-top: 20px;
@@ -215,10 +219,12 @@
 
         <div id="login-section" class="form-section active">
             <form id="login-form">
-                <input type="email" id="login-email" placeholder="Email Address" required>
+                <!-- Security Update: Added spellcheck="false" -->
+                <input type="email" id="login-email" placeholder="Email Address" required spellcheck="false">
                 
                 <div class="password-container">
-                    <input type="password" id="login-password" placeholder="Password" required>
+                    <!-- Security Update: Added autocomplete="off" and spellcheck="false" for password fields -->
+                    <input type="password" id="login-password" placeholder="Password" required autocomplete="off" spellcheck="false">
                     <i class="password-toggle fa-solid fa-eye-slash" onclick="togglePasswordVisibility('login-password', this)"></i>
                 </div>
                 
@@ -234,15 +240,18 @@
         <div id="signup-section" class="form-section">
             <form id="signup-form">
                 <input type="text" id="signup-name" placeholder="Full Name" required>
-                <input type="email" id="signup-email" placeholder="Email Address" required>
+                <!-- Security Update: Added spellcheck="false" -->
+                <input type="email" id="signup-email" placeholder="Email Address" required spellcheck="false">
                 
                 <div class="password-container">
-                    <input type="password" id="signup-password" placeholder="Password (min 6 chars)" required minlength="6">
+                    <!-- Security Update: Added autocomplete="off" and spellcheck="false" for password fields -->
+                    <input type="password" id="signup-password" placeholder="Password (min 6 chars)" required minlength="6" autocomplete="off" spellcheck="false">
                     <i class="password-toggle fa-solid fa-eye-slash" onclick="togglePasswordVisibility('signup-password', this)"></i>
                 </div>
                 
                 <div class="password-container">
-                    <input type="password" id="signup-password-confirm" placeholder="Confirm Password" required minlength="6">
+                    <!-- Security Update: Added autocomplete="off" and spellcheck="false" for password fields -->
+                    <input type="password" id="signup-password-confirm" placeholder="Confirm Password" required minlength="6" autocomplete="off" spellcheck="false">
                     <i class="password-toggle fa-solid fa-eye-slash" onclick="togglePasswordVisibility('signup-password-confirm', this)"></i>
                 </div>
                 
@@ -259,7 +268,9 @@
             
             <div id="forgot-step-1">
                 <p>Enter your email to receive a One-Time Password (OTP).</p>
-                <form id="request-otp-form"> <input type="email" id="forgot-email-input" placeholder="Email Address" required>
+                <form id="request-otp-form"> 
+                    <!-- Security Update: Added spellcheck="false" -->
+                    <input type="email" id="forgot-email-input" placeholder="Email Address" required spellcheck="false">
                     <button type="submit">Send OTP</button>
                 </form>
             </div>
@@ -267,7 +278,8 @@
             <div id="forgot-step-2" style="display: none;">
                 <p>A 6-digit OTP has been sent to <span id="otp-email-display" style="font-weight: bold;"></span>. Enter it below (expires in 5 minutes).</p>
                 <form id="verify-otp-form">
-                    <input type="text" id="otp-input" placeholder="6-digit OTP" required maxlength="6" pattern="[0-9]{6}">
+                    <!-- Security Update: Added autocomplete="off" and spellcheck="false" for OTP -->
+                    <input type="text" id="otp-input" placeholder="6-digit OTP" required maxlength="6" pattern="[0-9]{6}" autocomplete="off" spellcheck="false">
                     <button type="submit">Verify OTP</button>
                 </form>
             </div>
@@ -281,9 +293,11 @@
             <span class="close-btn" onclick="closeModal('admin')">&times;</span>
             <h2>Admin Login </h2>
             <form id="admin-form">
-                <input type="email" id="admin-email" placeholder="Admin Email" required>
+                <!-- Security Update: Added spellcheck="false" -->
+                <input type="email" id="admin-email" placeholder="Admin Email" required spellcheck="false">
                 <div class="password-container">
-                    <input type="password" id="admin-password" placeholder="Admin Password" required>
+                    <!-- Security Update: Added autocomplete="off" and spellcheck="false" for password fields -->
+                    <input type="password" id="admin-password" placeholder="Admin Password" required autocomplete="off" spellcheck="false">
                     <i class="password-toggle fa-solid fa-eye-slash" onclick="togglePasswordVisibility('admin-password', this)"></i>
                 </div>
                 <button type="submit">Log In as Admin</button>
@@ -294,6 +308,28 @@
 
 
     <script>
+        // Global flag to prevent rapid-fire form submissions (Deterrent against simple bots)
+        let isSubmitting = false;
+
+        /** * Sets the submission state, disabling/enabling the button and setting the global flag.
+         * @param {string} formId - The ID of the form whose button should be controlled.
+         * @param {boolean} submitting - True to set submitting state, False to reset.
+         */
+        function setSubmitting(formId, submitting) {
+            isSubmitting = submitting;
+            const button = document.getElementById(formId).querySelector('button[type="submit"]');
+            if (button) {
+                button.disabled = submitting;
+                // Optionally change button text while submitting
+                if (submitting) {
+                    button.dataset.originalText = button.textContent;
+                    button.textContent = 'Loading...';
+                } else {
+                    button.textContent = button.dataset.originalText || 'Submit'; 
+                }
+            }
+        }
+        
         /** --- UI Utility Logic (NEW) --- **/
         function togglePasswordVisibility(fieldId, iconElement) {
             const field = document.getElementById(fieldId);
@@ -341,7 +377,7 @@
             if(form) form.reset();
         }
 
-        /** --- API SUBMISSION LOGIC (MODIFIED) --- **/
+        /** --- API SUBMISSION LOGIC (MODIFIED to include submit protection) --- **/
 
         function showMessage(elId, msg, type = 'success') {
             const el = document.getElementById(elId);
@@ -351,7 +387,7 @@
         }
 /**
  * Displays a stylish, non-blocking toast notification that fades out.
- * * @param {string} message - The content of the notification.
+ * @param {string} message - The content of the notification.
  * @param {string} type - The type of message ('success', 'error', or 'info').
  * @param {number} duration - Time in milliseconds before the toast starts fading.
  */
@@ -381,13 +417,17 @@ function showToast(message, type = 'info', duration = 4000) {
     }, duration);
 }
        
-        // 1. LOGIN (MODIFIED for Account Status Check)
+        // 1. LOGIN (UPDATED for Submit Protection)
         document.getElementById('login-form').addEventListener('submit', async function(e) {
             e.preventDefault();
+            if (isSubmitting) return; // Prevent double submission
+
+            const formId = 'login-form';
+            setSubmitting(formId, true);
+
             const email = document.getElementById('login-email').value;
             const password = document.getElementById('login-password').value;
             
-
             try {
                 const response = await fetch('/api/login', {
                     method: 'POST',
@@ -400,22 +440,29 @@ function showToast(message, type = 'info', duration = 4000) {
                 if (response.ok) {
                     const redirectUrl = result.user.is_admin ? '/admin.html' : '/';
                     showToast(` Welcome ${result.user.full_name} ! `, 'success');
+                    // Success, allow immediate reset
                     setTimeout(() => window.location.href = redirectUrl, 1500);
-                } else if (response.status === 403) {
-                     // 403 will be used by server for deactivated account or rate limit
-                    showToast(`  ${result.message}`, 'error');
                 } else {
-                    // 401 for Invalid credentials/other errors
-                    showToast(`  ${result.message || 'Invalid credentials or login attempt limit reached.'}`, 'error');
+                    // Failures (401, 403, etc.) - use generic message or rely on server message
+                    const msg = result.message || 'Login failed. Please check your credentials and try again.';
+                    showToast(`❌ ${msg}`, 'error');
                 }
             } catch (error) {
                 showToast('❌ An error occurred connecting to the server.', 'error');
+            } finally {
+                // IMPORTANT: Re-enable submission regardless of success or failure
+                setSubmitting(formId, false);
             }
         });
         
-        // 2. SIGN UP (MODIFIED for Password Confirmation)
+        // 2. SIGN UP (UPDATED for Submit Protection)
         document.getElementById('signup-form').addEventListener('submit', async function(e) {
             e.preventDefault();
+            if (isSubmitting) return; // Prevent double submission
+
+            const formId = 'signup-form';
+            setSubmitting(formId, true);
+
             const name = document.getElementById('signup-name').value;
             const email = document.getElementById('signup-email').value;
             const password = document.getElementById('signup-password').value;
@@ -423,6 +470,7 @@ function showToast(message, type = 'info', duration = 4000) {
             
             if (password !== confirmPassword) {
                 showToast('❌ Passwords do not match.', 'error');
+                setSubmitting(formId, false);
                 return;
             }
             
@@ -444,12 +492,19 @@ function showToast(message, type = 'info', duration = 4000) {
                 }
             } catch (error) {
                 showToast('❌ An error occurred connecting to the server.', 'error');
+            } finally {
+                setSubmitting(formId, false);
             }
         });
         
-        // 3. ADMIN LOGIN (EXISTING)
+        // 3. ADMIN LOGIN (UPDATED for Submit Protection)
         document.getElementById('admin-form').addEventListener('submit', async function(e) {
             e.preventDefault();
+            if (isSubmitting) return; // Prevent double submission
+
+            const formId = 'admin-form';
+            setSubmitting(formId, true);
+
             const email = document.getElementById('admin-email').value;
             const password = document.getElementById('admin-password').value;
             
@@ -466,19 +521,28 @@ function showToast(message, type = 'info', duration = 4000) {
                     showToast(` Welcome, Admin !`, 'success');
                     setTimeout(() => window.location.href = '/admin.html', 1500);
                 } else {
-                    showToast(`❌ Error: ${result.message || 'Admin login failed.'}`, 'error');
+                    // Use a generic failure message to prevent enumeration of admin accounts
+                    const msg = result.message || 'Admin login failed. Invalid credentials or account is not an admin.';
+                    showToast(`❌ Error: ${msg}`, 'error');
                 }
             } catch (error) {
                 showToast('❌ An error occurred connecting to the server.', 'error');
+            } finally {
+                setSubmitting(formId, false);
             }
         });
         
-        // 4. OTP PASSWORD RESET LOGIC (EXISTING)
+        // 4. OTP PASSWORD RESET LOGIC (UPDATED for Submit Protection)
         
         let resetEmail = '';
 
         document.getElementById('request-otp-form').addEventListener('submit', async function(e) {
             e.preventDefault();
+            if (isSubmitting) return; 
+
+            const formId = 'request-otp-form';
+            setSubmitting(formId, true);
+
             const email = document.getElementById('forgot-email-input').value;
             resetEmail = email;
             showToast('Sending OTP...', 'info');
@@ -504,11 +568,18 @@ function showToast(message, type = 'info', duration = 4000) {
                 }
             } catch (error) {
                 showToast('❌ Network error.', 'error');
+            } finally {
+                setSubmitting(formId, false);
             }
         });
 
         document.getElementById('verify-otp-form').addEventListener('submit', async function(e) {
             e.preventDefault();
+            if (isSubmitting) return; 
+
+            const formId = 'verify-otp-form';
+            setSubmitting(formId, true);
+            
             const otp = document.getElementById('otp-input').value;
             const email = resetEmail;
 
@@ -527,6 +598,7 @@ function showToast(message, type = 'info', duration = 4000) {
                     showToast('✅ OTP verified! Redirecting to password reset...', 'success'); 
                     
                     const verificationToken = result.verificationToken;
+                    // The server is responsible for making sure the vtoken is short-lived and single-use.
                     const redirectUrl = `/reset-password.html?vtoken=${verificationToken}&email=${encodeURIComponent(email)}`;
                     
                     setTimeout(() => window.location.href = redirectUrl, 1500);
@@ -536,6 +608,8 @@ function showToast(message, type = 'info', duration = 4000) {
                 }
             } catch (error) {
                 showToast('❌ Network error.', 'error');
+            } finally {
+                setSubmitting(formId, false);
             }
         });
     </script>

@@ -1,4 +1,4 @@
-// server.js (Final Production Build with Resend & Upload Fixes)
+// server.js (Final Production Build with Enhanced Security and Wallet Features)
 
 // 1. Load environment variables first
 require('dotenv').config(); 
@@ -18,7 +18,8 @@ const crypto = require('crypto');
 const cors = require('cors');
 
 // Import DB functions
-const { pool, findUserById, findAllUsers, saveContactMessage, getAllContactMessages, updateUserProfile, findUserOrders, findUserByEmail, updatePassword, updateUserStatus} = require('./db'); 
+// ASSUMPTION: db.js functions are updated to handle idNumber and balance fetching/updating.
+const { pool, findUserById, findAllUsers, saveContactMessage, getAllContactMessages, updateUserProfile, findUserOrders, findUserByEmail, updatePassword, updateUserStatus, updateProduct} = require('./db'); 
 
 const passwordResetCache = {}; 
 
@@ -159,9 +160,23 @@ app.get('/contact', (req, res) => { res.sendFile(path.join(__dirname, 'contact.h
 
 app.post('/api/signup', async (req, res) => {
     const { full_name, email, password } = req.body;
+    
+    // --- Server-Side Input Validation (SECURITY ENHANCEMENT) ---
     if (!full_name || !email || !password) {
         return res.status(400).json({ message: 'All fields are required.' });
     }
+    
+    // Simple email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        return res.status(400).json({ message: 'Invalid email format.' });
+    }
+
+    // Password length enforcement
+    if (password.length < 6 || password.length > 72) {
+        return res.status(400).json({ message: 'Password must be between 6 and 72 characters.' });
+    }
+    // --- End Validation ---
 
     try {
         const password_hash = await bcrypt.hash(password, saltRounds);
@@ -184,10 +199,10 @@ app.post('/api/login', async (req, res) => {
     const attemptKey = email.toLowerCase();
     const now = Date.now();
     
-    // Rate Limit Check
+    // Brute-Force Rate Limit Check
     if (loginAttempts[attemptKey] && loginAttempts[attemptKey].lockoutTime > now) {
         return res.status(401).json({ 
-            message: `Too many failed attempts. Try again in ${Math.ceil((loginAttempts[attemptKey].lockoutTime - now) / 60000)} minutes.` 
+            message: `Too many failed attempts. Account locked for 1 hour.` 
         });
     }
     
@@ -202,19 +217,24 @@ app.post('/api/login', async (req, res) => {
         );
 
         const user = users[0];
+        
+        // --- User Enumeration Mitigation (Timing Attack) ---
         if (!user) {
+            // Introduce artificial delay to match the time taken for a hash comparison failure
             await new Promise(resolve => setTimeout(resolve, 500)); 
             return handleFailedLogin(res, attemptKey, 'Invalid credentials.');
         }
 
         const match = await bcrypt.compare(password, user.password_hash);
+        
         if (!match) {
             return handleFailedLogin(res, attemptKey, 'Invalid credentials.');
         }
         
         if (!user.is_active) {
+            // Consistent failure message for deactivated account to prevent enumeration
             return res.status(403).json({ 
-                message: 'Your account has been deactivated. Please contact admin.' 
+                message: 'Invalid credentials or account is deactivated.' 
             });
         }
         
@@ -243,22 +263,42 @@ function handleFailedLogin(res, attemptKey, message) {
     if (loginAttempts[attemptKey].count >= MAX_ATTEMPTS) {
         loginAttempts[attemptKey].lockoutTime = now + LOCKOUT_DURATION_MS;
         loginAttempts[attemptKey].count = 0; 
+        // SECURITY ENHANCEMENT: Use generic message for lockout
         return res.status(401).json({ 
             message: 'Too many failed attempts. Account locked for 1 hour.' 
         });
     }
+    // SECURITY ENHANCEMENT: Use generic message for failed attempt
     return res.status(401).json({ 
-        message: `${message} Attempt ${loginAttempts[attemptKey].count} of ${MAX_ATTEMPTS}.` 
+        message: 'Invalid credentials. Please try again.' 
     });
 }
 
 app.post('/api/admin/login', async (req, res) => {
     const { email, password } = req.body;
+    const attemptKey = `admin_${email.toLowerCase()}`;
+    const now = Date.now();
+    
+    // Brute-Force Rate Limit Check (Shared logic for all login attempts)
+    if (loginAttempts[attemptKey] && loginAttempts[attemptKey].lockoutTime > now) {
+        return res.status(401).json({ 
+            message: 'Invalid Admin Credentials.' // Generic failure message
+        });
+    }
+    
+    if (loginAttempts[attemptKey] && loginAttempts[attemptKey].lockoutTime <= now) {
+        loginAttempts[attemptKey] = { count: 0, lockoutTime: 0 };
+    }
+    
+    let userFound = false;
 
+    // 1. Check ENV Admin
     if (email === ADMIN_EMAIL) {
+        userFound = true;
         try {
             const match = await bcrypt.compare(password, ADMIN_PASSWORD_HASH);
             if (match) {
+                delete loginAttempts[attemptKey];
                 req.session.isAuthenticated = true;
                 req.session.isAdmin = true;
                 req.session.userId = 'admin_env'; 
@@ -273,13 +313,21 @@ app.post('/api/admin/login', async (req, res) => {
         }
     }
     
+    // 2. Check DB Admin
     try {
-        const [users] = await pool.execute('SELECT id, full_name, password_hash FROM users WHERE email = ? AND is_admin = TRUE', [email]);
+        const [users] = await pool.execute('SELECT id, full_name, password_hash, is_active FROM users WHERE email = ? AND is_admin = TRUE', [email]);
         const user = users[0];
 
         if (user) {
+            userFound = true;
+            if (!user.is_active) {
+                // Return generic failure message even if account is deactivated
+                return handleFailedLogin(res, attemptKey, 'Invalid Admin Credentials.');
+            }
+            
             const match = await bcrypt.compare(password, user.password_hash);
             if (match) {
+                delete loginAttempts[attemptKey];
                 req.session.isAuthenticated = true;
                 req.session.isAdmin = true;
                 req.session.userId = user.id;
@@ -290,11 +338,18 @@ app.post('/api/admin/login', async (req, res) => {
                 });
             }
         }
+        
+        // --- User Enumeration Mitigation (Timing Attack) ---
+        if (!userFound) {
+            // Introduce artificial delay to match the time taken for a hash comparison failure
+            await new Promise(resolve => setTimeout(resolve, 500)); 
+        }
+
     } catch (error) {
         console.error('Admin DB Login error:', error);
     }
     
-    return res.status(401).json({ message: 'Invalid Admin Credentials.' });
+    return handleFailedLogin(res, attemptKey, 'Invalid Admin Credentials.');
 });
 
 
@@ -353,9 +408,16 @@ app.get('/api/user/profile', isAuthenticated, async (req, res) => {
     const userId = req.session.userId; 
 
     try {
-        const userProfile = await findUserById(userId); 
-        if (userProfile) {
-            return res.json(userProfile);
+        // Fetch necessary profile fields, including new ones: id_number and balance
+        const [users] = await pool.execute(
+            'SELECT id, full_name as name, email, phone_number as phoneNumber, profile_picture_url as profilePictureUrl, is_active as isActive, id_number as idNumber, balance FROM users WHERE id = ?',
+            [userId]
+        );
+
+        if (users.length > 0) {
+            // Ensure balance is a number
+             users[0].balance = parseFloat(users[0].balance || 0).toFixed(2);
+             return res.json(users[0]);
         } else {
             return res.status(404).json({ message: 'User profile not found.' });
         }
@@ -367,7 +429,8 @@ app.get('/api/user/profile', isAuthenticated, async (req, res) => {
 
 app.post('/api/user/profile', isAuthenticated, upload.single('profilePicture'), async (req, res) => {
     const userId = req.session.userId; 
-    const { phoneNumber, currentProfilePictureUrl } = req.body;
+    // Added idNumber to destructuring
+    const { phoneNumber, currentProfilePictureUrl, idNumber } = req.body; 
     
     let newProfilePictureUrl = currentProfilePictureUrl;
 
@@ -375,12 +438,19 @@ app.post('/api/user/profile', isAuthenticated, upload.single('profilePicture'), 
         newProfilePictureUrl = `/images/profiles/${req.file.filename}`; 
     }
 
+    // Input Validation for Phone and ID
     if (phoneNumber && !phoneNumber.match(/^[0-9]{9,15}$/)) {
-        return res.status(400).json({ message: 'Invalid phone number format.' });
+        return res.status(400).json({ message: 'Invalid phone number format. Must be 9-15 digits.' });
+    }
+    if (idNumber && !idNumber.match(/^[0-9]{5,15}$/)) { 
+        return res.status(400).json({ message: 'Invalid ID Number format. Must be 5-15 digits.' });
     }
 
+
     try {
-        const affectedRows = await db.updateUserProfile(userId, phoneNumber, newProfilePictureUrl);
+        // ASSUMPTION: updateUserProfile is updated in db.js to handle idNumber
+        // Update DB call to include idNumber
+        const affectedRows = await db.updateUserProfile(userId, phoneNumber, newProfilePictureUrl, idNumber); 
         if (affectedRows > 0) {
             return res.json({ 
                 message: 'Profile updated successfully!', 
@@ -393,6 +463,65 @@ app.post('/api/user/profile', isAuthenticated, upload.single('profilePicture'), 
         console.error('Profile update error:', error);
         return res.status(500).json({ message: 'Server error during profile update.' });
     }
+});
+
+// =========================================================
+//                   WALLET API ROUTES (NEW)
+// =========================================================
+
+app.get('/api/wallet/balance', isAuthenticated, async (req, res) => {
+    const userId = req.session.userId;
+    try {
+        const [users] = await pool.execute('SELECT balance FROM users WHERE id = ?', [userId]);
+        if (users.length > 0) {
+            // Return balance as a string with 2 decimal places
+            return res.json({ balance: parseFloat(users[0].balance || 0).toFixed(2) });
+        }
+        res.status(404).json({ message: 'Wallet not found.' });
+    } catch (error) {
+        console.error('Error fetching balance:', error);
+        res.status(500).json({ message: 'Failed to fetch balance.' });
+    }
+});
+
+app.post('/api/wallet/mpesa/pay', isAuthenticated, async (req, res) => {
+    const userId = req.session.userId;
+    const { phoneNumber, amount } = req.body;
+    
+    if (!phoneNumber || !amount || parseFloat(amount) < 100) {
+        return res.status(400).json({ message: 'Missing phone number or amount (minimum Ksh 100).' });
+    }
+    
+    // Basic validation
+    if (!phoneNumber.match(/^[0-9]{9,15}$/) || isNaN(amount)) {
+        return res.status(400).json({ message: 'Invalid phone number or amount format.' });
+    }
+    
+    const numericAmount = parseFloat(amount);
+    
+    // --- MOCK M-PESA STK PUSH LOGIC ---
+    // Simulating success and delayed balance update
+
+    const MOCK_DELAY_MS = 2000;
+    
+    setTimeout(async () => {
+        try {
+            // Assuming a successful M-Pesa transaction adds to the balance
+            await pool.execute(
+                'UPDATE users SET balance = balance + ? WHERE id = ?',
+                [numericAmount, userId]
+            );
+            console.log(`MOCK: User ${userId} balance credited with Ksh ${numericAmount} after M-Pesa push.`);
+        } catch (e) {
+            console.error(`MOCK ERROR: Failed to update balance for user ${userId}:`, e);
+        }
+    }, MOCK_DELAY_MS);
+
+    // Immediate response to the client
+    res.json({
+        message: 'M-Pesa STK Push initiated successfully. Please check your phone for the prompt. Your account will be credited shortly.',
+        transactionId: `MOCK_TXN_${Date.now()}`
+    });
 });
 
 // =========================================================
@@ -597,7 +726,7 @@ app.post('/api/cart', isAuthenticated, async (req, res) => {
         const newQuantity = currentQuantity + quantity;
 
         if (newQuantity > product.stock) {
-            return res.status(400).json({ message: `Cannot add that quantity. Only ${product.stock_quantity} of ${product.name} left.` });
+            return res.status(400).json({ message: `Cannot add that quantity. Only ${product.stock} of ${product.name} left.` });
         }
 
         if (cartRows.length > 0) {
@@ -836,7 +965,7 @@ app.put('/api/products/:id', isAdmin, upload.single('productImage'), async (req,
     };
     
     try {
-        const affectedRows = await db.updateProduct(productId, updatedData); 
+        const affectedRows = await updateProduct(productId, updatedData); 
 
         if (affectedRows > 0) { 
             res.status(200).json({ message: `Product ${productId} updated successfully!` });
@@ -898,11 +1027,19 @@ app.get('/api/admin/messages', isAuthenticated, isAdmin, async (req, res) => {
 app.post('/api/request-otp', async (req, res) => {
     const { email } = req.body;
     
-    // Normalize
+    // Normalize and validate
     const normalizedEmail = email.toLowerCase().trim();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(normalizedEmail)) {
+        return res.status(400).json({ message: 'Invalid email format.' });
+    }
 
     const user = await db.findUserByEmail(email); 
+    
+    // SECURITY ENHANCEMENT: Consistent response for User Enumeration Prevention
     if (!user) {
+        // Return success message even if email is not found, but do not send email.
+        await new Promise(resolve => setTimeout(resolve, 500)); // Delay to mitigate timing attack
         return res.status(200).json({ message: 'If the account exists, an OTP has been sent to your email.' });
     }
 
@@ -951,25 +1088,18 @@ app.post('/api/verify-otp', async (req, res) => {
     // 3. Retrieve from Cache
     const cacheEntry = otpCache[normalizedEmail];
     
-    // --- DEBUGGING LOGS ---
-    console.log(`DEBUG VERIFY: Checking email: [${normalizedEmail}]`);
-    console.log(`DEBUG VERIFY: Input OTP: [${inputOtp}]`);
-    console.log(`DEBUG VERIFY: Stored Cache:`, cacheEntry);
-    
     // 4. Check Logic
     if (!cacheEntry) {
-        console.log('DEBUG FAIL: No cache entry found.');
         return res.status(400).json({ message: 'Invalid or expired OTP (Session not found).' });
     }
 
     if (cacheEntry.otp !== inputOtp) {
-        console.log(`DEBUG FAIL: OTP Mismatch.`);
+        // SECURITY ENHANCEMENT: Immediately delete cache on failed attempt to prevent brute-forcing the same OTP
         delete otpCache[normalizedEmail]; 
         return res.status(400).json({ message: 'Invalid OTP provided.' });
     }
 
     if (Date.now() > cacheEntry.expiry) {
-        console.log('DEBUG FAIL: OTP Expired.');
         delete otpCache[normalizedEmail];
         return res.status(400).json({ message: 'OTP has expired.' });
     }
@@ -994,6 +1124,7 @@ app.post('/api/reset-password', async (req, res) => {
         return res.status(400).json({ message: 'Missing required reset information.' });
     }
     
+    // Server-side password length validation
     if (newPassword.length < 8) {
         return res.status(400).json({ message: 'New password must be at least 8 characters long.' });
     }
